@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use App\Services\Source\RisSourceService as Source;
+use App\Services\OfficeService;
 
 class RisCommmand extends Command
 {
@@ -20,6 +22,7 @@ class RisCommmand extends Command
      */
     protected $description = 'Command description';
 
+    
     /**
      * Create a new command instance.
      *
@@ -37,6 +40,16 @@ class RisCommmand extends Command
      */
     public function handle()
     {
-        //
+
+        $source = new Source();
+        $source->getData();
+        $data = $source->parseData(); 
+        $office = new OfficeService();
+        $office->setSource('ris_media');
+        
+        foreach ($data as $row) {
+            dump($row['office']);
+            $office->getId($row['office']);
+        }
     }
 }
