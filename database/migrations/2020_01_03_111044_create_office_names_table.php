@@ -18,7 +18,6 @@ class CreateOfficeNamesTable extends Migration
             $table->unsignedBigInteger('office_id');
             $table->string('name');
             $table->string('slug');
-            $table->string('source');
             $table->timestamps();
             $table->foreign('office_id')->references('id')->on('offices');
             $table->index('name');

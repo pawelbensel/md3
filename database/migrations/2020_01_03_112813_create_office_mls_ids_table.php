@@ -20,7 +20,6 @@ class CreateOfficeMlsIdsTable extends Migration
             $table->unsignedBigInteger('office_id');
             $table->string('mls_id');
             $table->string('mls_name');
-            $table->string('source');
             $table->timestamps();
             $table->foreign('office_id')->references('id')->on('offices');
             $table->index('mls_name');

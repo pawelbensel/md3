@@ -16,14 +16,15 @@ class CreateOfficeAddressesTable extends Migration
         Schema::create('office_addresses', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('office_id');
-            $table->string('address1');
-            $table->string('address2');
-            $table->string('source');
+            $table->string('address1')->nullable();
+            $table->string('address2')->nullable();
+            $table->string('city')->nullable();
             $table->string('slug');
             $table->timestamps();
             $table->foreign('office_id')->references('id')->on('offices');
             $table->index('address1');
             $table->index('address2');
+            $table->index('city');
             $table->index('slug');
 
         });

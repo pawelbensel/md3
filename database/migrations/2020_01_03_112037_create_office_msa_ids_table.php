@@ -17,7 +17,6 @@ class CreateOfficeMsaIdsTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('office_id');
             $table->string('msa_id');
-            $table->string('source');
             $table->timestamps();
             $table->foreign('office_id')->references('id')->on('offices');
             $table->index('msa_id');

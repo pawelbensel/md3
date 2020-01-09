@@ -16,8 +16,7 @@ class CreateAgentFirstNamesTable extends Migration
         Schema::create('agent_first_names', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('agent_id');
-            $table->string('first_name');            
-            $table->string('source');
+            $table->string('first_name');                        
             $table->string('slug');
             $table->timestamps();
             $table->foreign('agent_id')->references('id')->on('agents');

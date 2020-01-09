@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateOfficeCitiesTable extends Migration
+class CreateSourceRowsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,16 +13,14 @@ class CreateOfficeCitiesTable extends Migration
      */
     public function up()
     {
-        Schema::create('office_cities', function (Blueprint $table) {
+        Schema::create('source_rows', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('office_id');
-            $table->string('city');
+            $table->string('hash');
+            $table->json('row');
             $table->string('source');
-            $table->string('slug');
+            $table->boolean('parsed')->default(false);
             $table->timestamps();
-            $table->foreign('office_id')->references('id')->on('offices');
-            $table->index('city');
-            $table->index('slug');
+            $table->index('hash');
         });
     }
 
@@ -33,6 +31,6 @@ class CreateOfficeCitiesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('office_cities');
+        Schema::dropIfExists('source_rows');
     }
 }

@@ -16,8 +16,8 @@ class CreateOfficeEmailsTable extends Migration
         Schema::create('office_emails', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('office_id');
-            $table->string('email');            
-            $table->string('source');            
+            $table->string('email');                        
+            $table->unsignedBigInteger('old_office_id')->nullable(); /*ID of an office before merge*/            
             $table->timestamps();
             $table->foreign('office_id')->references('id')->on('offices');
             $table->index('email');            

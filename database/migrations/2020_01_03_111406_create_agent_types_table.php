@@ -16,9 +16,8 @@ class CreateAgentTypesTable extends Migration
         Schema::create('agent_types', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('agent_id');
-            $table->string('type');
-            $table->string('source');
-            $table->string('slug');
+            $table->string('type');            
+            $table->string('slug');            
             $table->timestamps();
             $table->foreign('agent_id')->references('id')->on('agents');
             $table->index('type');

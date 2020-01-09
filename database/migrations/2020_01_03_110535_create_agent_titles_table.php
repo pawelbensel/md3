@@ -16,8 +16,7 @@ class CreateAgentTitlesTable extends Migration
         Schema::create('agent_titles', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('agent_id');
-            $table->string('title');
-            $table->string('source');
+            $table->string('title');            
             $table->string('slug');
             $table->timestamps();
             $table->foreign('agent_id')->references('id')->on('agents');

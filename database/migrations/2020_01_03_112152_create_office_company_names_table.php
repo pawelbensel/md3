@@ -16,8 +16,7 @@ class CreateOfficeCompanyNamesTable extends Migration
         Schema::create('office_company_names', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('office_id');
-            $table->string('company_name');            
-            $table->string('source');
+            $table->string('company_name');                        
             $table->string('slug');
             $table->timestamps();
             $table->foreign('office_id')->references('id')->on('offices');

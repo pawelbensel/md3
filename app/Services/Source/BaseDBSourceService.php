@@ -5,7 +5,7 @@ namespace App\Services\Source;
 class BaseDBSourceService extends BaseSourceService
 {
     
-    protected $limit = 10;
+    protected $limit = 100;
     protected $offset = 0;
     protected $tableName;
     protected $dbConnection;    

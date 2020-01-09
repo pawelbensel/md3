@@ -17,8 +17,7 @@ class CreateAgentMlsIdsTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('agent_id');
             $table->string('mls_id');
-            $table->string('mls_name');
-            $table->string('source');
+            $table->string('mls_name');            
             $table->timestamps();
             $table->foreign('agent_id')->references('id')->on('agents');
             $table->index('mls_name');

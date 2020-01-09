@@ -16,8 +16,7 @@ class CreateAgentLastNamesTable extends Migration
         Schema::create('agent_last_names', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('agent_id');
-            $table->string('last_name');            
-            $table->string('source');
+            $table->string('last_name');                        
             $table->string('slug');
             $table->timestamps();
             $table->foreign('agent_id')->references('id')->on('agents');

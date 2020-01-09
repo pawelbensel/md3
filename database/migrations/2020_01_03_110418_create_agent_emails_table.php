@@ -17,7 +17,6 @@ class CreateAgentEmailsTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('agent_id');
             $table->string('email');            
-            $table->string('source');            
             $table->timestamps();
             $table->foreign('agent_id')->references('id')->on('agents');
             $table->index('email');           

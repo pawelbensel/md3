@@ -1,0 +1,12 @@
+<?php
+
+trait Sluggable {
+	
+	protected static function boot()
+    {
+        parent::boot();
+        static::saving(function ($model) {
+            $model->slug = str_slug($model->title);
+        });
+    }
+}

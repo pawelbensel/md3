@@ -17,4 +17,28 @@ class Office extends Model
     {
         return $this->hasMany('App\Models\OfficeMsaId');
     }
+ 
+    public function addresses()
+    {
+        return $this->hasMany('App\Models\OfficeAddress');
+    }
+    public function companyNames()
+    {
+        return $this->hasMany('App\Models\OfficeCompanyName');
+    }
+
+    public function phones()
+    {
+        return $this->hasMany('App\Models\OfficePhone');
+    }
+
+    public function zips()
+    {
+        return $this->hasMany('App\Models\OfficeZip');
+    }
+
+    public function states()
+    {
+        return $this->hasMany('App\Models\OfficeState');
+    }
 }

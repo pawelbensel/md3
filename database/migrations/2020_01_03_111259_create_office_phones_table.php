@@ -17,7 +17,7 @@ class CreateOfficePhonesTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('office_id');
             $table->string('phone');
-            $table->string('source');
+            $table->string('slug');
             $table->timestamps();
             $table->foreign('office_id')->references('id')->on('offices');
             $table->index('phone');

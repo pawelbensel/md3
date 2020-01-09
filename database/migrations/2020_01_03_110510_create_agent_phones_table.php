@@ -17,7 +17,6 @@ class CreateAgentPhonesTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('agent_id');
             $table->string('phone');
-            $table->string('source');
             $table->timestamps();
             $table->foreign('agent_id')->references('id')->on('agents');
             $table->index('phone');

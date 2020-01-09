@@ -16,8 +16,7 @@ class CreateOfficeZipsTable extends Migration
         Schema::create('office_zips', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('office_id');
-            $table->string('zip');            
-            $table->string('source');
+            $table->string('zip');
             $table->timestamps();
             $table->foreign('office_id')->references('id')->on('offices');
             $table->index('zip');
