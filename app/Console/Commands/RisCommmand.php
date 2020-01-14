@@ -52,12 +52,10 @@ class RisCommmand extends Command
 
         $office = new OfficeService();
         $office->setSource($source->getSource());
-
         $agent = ($scopeOfficeId)? new AgentService($scopeOfficeId): new AgentService();
         $agent->setSource($source->getSource());
 
         foreach ($data as $row) {
-            //try {
                 $office->setSourceRowId($row['source_row']['source_row_id']);
                 $officeId = $office->getId($row['office']);
                 $currentOffice = Office::find($officeId);
@@ -65,11 +63,6 @@ class RisCommmand extends Command
                 $agent->setOffice($currentOffice);
                 $agent->setSourceRowId($row['source_row']['source_row_id']);
                 $agent->getId($row['agent']);
-            //} catch (QueryException $e)
-            //{
-             //   dump(['SQL' => $e->getSql()]);
-            //}
         }
-
     }
 }

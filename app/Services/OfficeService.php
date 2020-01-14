@@ -16,7 +16,7 @@ use App\Models\OfficeName;
 use App\Models\OfficePhone;
 use App\Models\OfficeState;
 use App\Models\OfficeZip;
-
+use App\Helpers\StringHelpers;
 
 
 
@@ -26,7 +26,25 @@ class OfficeService extends BaseService
     protected $office;
     protected $sourceObjectId;
     protected $sourceRowId;
-    
+    protected $cleanups = [
+                    'inc'
+                ];
+
+    public function __construct()
+    {
+        
+    }
+
+    private function cleanUp($string) {
+        
+        foreach ($this->cleanups as $clean) {
+            $string = str_replace($clean,'',$string);
+        }
+            return $string;
+    }
+
+
+
     public function setSourceRowId($sourceRowId) {
         $this->sourceRowId = $sourceRowId;
     }
@@ -39,6 +57,8 @@ class OfficeService extends BaseService
         }
 
     }
+
+
 
     private function getByMsaId() {
 		
@@ -61,153 +81,192 @@ class OfficeService extends BaseService
 	    return null;
     }
 
-    private function getByName() {
-		        
-        $this->matched_by = 'office_name,address1, address2, city';
-        $this->matching_rate = 100;
-
-			$name = $this->checkedRow['office_name'];
-            $address1 = $this->checkedRow['address1'];
-            $address2 = $this->checkedRow['address2'];
-            $city = $this->checkedRow['city'];
-            $this->log($this->checkedRow);
-            $this->log('Try to get by'. $this->matched_by);
-			$office = Office::whereHas('names', 
-				function ($names) use ($name) {
-	            	$names->where([
-	                	'office_names.name' => $name
-	            ]);
-	        })->whereHas('addresses', 
-                function ($address) use ($address1, $address2, $city) {
-                    $address->where([
-                        'office_addresses.address1' => $address1,
-                        'office_addresses.address2' => $address2,
-                        'office_addresses.city' => $city,
-                ]);
-            })
-	        ->with('names')
-            ->with('addresses')
-	        ->first();
-	       
-           if (!$office) {
-                $this->matched_by = 'office_name, city';
-                $this->matching_rate = 90;
-                $this->log('Try to get by'. $this->matched_by);
-                $office = Office::whereHas('names', 
-                    function ($names) use ($name) {
-                        $names->where([
-                            'office_names.name' => $name
-                    ]);
-                })->whereHas('addresses', 
-                    function ($address) use ($address1, $address2, $city) {
-                        $address->where([
-                            'office_addresses.city' => $city,
-                    ]);
-                })
-                ->with('names')
-                ->with('addresses')
-                ->first();
-            }
-
-            if (!$office) {
-                $this->matched_by = 'office_name';
-                $this->log('Try to get by'. $this->matched_by);
-                $this->matching_rate = 80;
-                $office = Office::whereHas('names', 
-                    function ($names) use ($name) {
-                        $names->where([
-                            'office_names.name' => $name
-                    ]);
-                })->whereHas('addresses', 
-                    function ($address) use ($address1, $address2, $city) {
-                        $address->where([
-                            'office_addresses.city' => $city,
-                    ]);
-                })
-                ->with('names')
-                ->with('addresses')
-                ->first();
-            }
-
-        return $office;
-    }
-
 
     private function getByName2() {
-
-        $this->matched_by = 'office_name,address1, address2, city';
-        $this->matching_rate = 100;
-
         $name = StringHelpers::escapeLike($this->checkedRow['office_name']);
+        $nameSlug = StringHelpers::slug($this->checkedRow['office_name']);
+        $cleanNameSlug = $this->cleanUp($nameSlug);
         $address1 = StringHelpers::escapeLike($this->checkedRow['address1']);
         $address2 = StringHelpers::escapeLike($this->checkedRow['address2']);
         $city = StringHelpers::escapeLike($this->checkedRow['city']);
-        //$this->log($this->checkedRow);
+        $phone = StringHelpers::cleanupPhoneNumber($this->checkedRow['office_phone']);
+        $shortPhoneNumbers = StringHelpers::shortPhoneNumber($cleanNameSlug);
+
         $officeQueryBase = Office::
             leftJoin('office_names', 'offices.id', '=', 'office_names.office_id')
-            ->leftJoin('office_addresses', 'offices.id', '=', 'office_addresses.office_id');
+            ->leftJoin('office_addresses', 'offices.id', '=', 'office_addresses.office_id')
+            ->leftJoin('office_phones', 'offices.id', '=', 'office_phones.office_id')
+            ->leftJoin('office_zips', 'offices.id', '=', 'office_zips.office_id')
+            ->leftJoin('office_mls_ids', 'offices.id', '=', 'office_mls_ids.office_id');
 
-        $this->log('Try to get by'. $this->matched_by);
+
+        $this->matched_by = 'office_name, address1, address2, city, phone';
+        $this->matching_rate = 100;
+        $this->log('Try to get by'. $this->matched_by);        
         $officeQuery = clone $officeQueryBase;
         $office = $officeQuery
                 ->select("offices.id")
                 ->whereRaw("office_names.name like '%$name%'")
                 ->whereRaw("office_addresses.address1 like '%$address1%'")
-                ->whereRaw("office_addresses.address2 like '%$address2%'")
+                ->whereRaw("((office_addresses.address2 like '%$address2%') or (office_addresses.address2 is null))")
                 ->whereRaw("office_addresses.city like '%$city%'")
+                ->whereRaw("office_phones.slug like '%$phone%'")
                 ->first();
                         
 
         if (!$office) {
-            $this->log('Try to get by'. $this->matched_by);
+            
             $officeQuery = clone $officeQueryBase;
-            $this->matched_by = 'office_name, city';
-            $this->matching_rate = 90;            
+            $this->matched_by = 'office_name,address1, address2, city,';
+            $this->matching_rate = 98;
+            $this->log('Try to get by'. $this->matched_by);
+            
             $office = $officeQuery
                 ->select("offices.id")
                 ->whereRaw("office_names.name like '%$name%'")
+                ->whereRaw("office_addresses.address1 like '%$address1%'")
+                ->whereRaw("((office_addresses.address2 like '%$address2%') or (office_addresses.address2 is null))")
                 ->whereRaw("office_addresses.city like '%$city%'")
-                //Probably state will be needed here
-                //->whereRaw("office_addresses.city like '%?%'", [$city])                
-            ->first();
-        }
-
-        if (!$office) {            
-            $officeQuery = clone $officeQueryBase;
-            $this->matched_by = 'slug office_name';
-            $this->matching_rate = 80;            
-            $this->log('Try to get by'. $this->matched_by);
-            $office = $officeQuery
-                ->select("offices.id")
-                ->whereRaw("office_names.name like '%$name%'")            
-                //->whereRaw("office_addresses.city like '%?%'", [$city])                
-            ->first();            
-        }
-
-        if (!$office) {            
-            $officeQuery = clone $officeQueryBase;
-            $this->matched_by = 'slug office_name';
-            $this->matching_rate = 80;            
-            $this->log('Try to get by'. $this->matched_by);
-            $office = $officeQuery
-                ->select("offices.id")
-                ->whereRaw("office_names.name like '%$name%'")
-                //->whereRaw("office_addresses.city like '%?%'", [$city])                
-            ->first();            
+                ->first();
         }
 
         if (!$office) {
+            $officeQuery = clone $officeQueryBase;
+            $this->matched_by = 'office_name, city, phone';
+            $this->matching_rate = 95;
             $this->log('Try to get by'. $this->matched_by);
+            
+            $office = $officeQuery
+                ->select("offices.id")
+                ->whereRaw("office_names.name like '%$name%'")
+                ->whereRaw("office_addresses.address1 like '%$address1%'")
+                ->whereRaw("((office_addresses.address2 like '%$address2%') or (office_addresses.address2 is null))")
+                ->whereRaw("office_addresses.city like '%$city%'")
+                ->first();
+        }
+
+        if (!$office) {
+            
+            $officeQuery = clone $officeQueryBase;
+            $this->matched_by = 'slug office_name, address1, address2, city';
+            $this->matching_rate = 90;
+            $this->log('Try to get by'. $this->matched_by);
+            
+            $office = $officeQuery
+                ->select("offices.id")
+                ->whereRaw("office_names.slug like '%$nameSlug%'")
+                ->whereRaw("office_addresses.address1 like '%$address1%'")
+                ->whereRaw("((office_addresses.address2 like '%$address2%') or (office_addresses.address2 is null))")
+                ->whereRaw("office_addresses.city like '%$city%'")
+                ->first();
+        }
+
+        if (!$office) {
+            
+            $officeQuery = clone $officeQueryBase;
+            $this->matched_by = 'slug office_name, city, phone';
+            $this->matching_rate = 90;
+            $this->log('Try to get by'. $this->matched_by);
+            
+            $office = $officeQuery
+                ->select("offices.id")
+                ->whereRaw("office_names.slug like '%$nameSlug%'")
+                ->whereRaw("office_addresses.city like '%$city%'")
+                ->whereRaw("office_phones.slug like '%$phone%'")
+                ->first();
+        }
+
+        if (!$office) {
+            $officeQuery = clone $officeQueryBase;
+            $this->matched_by = 'clean slug office_name, address1, address2, city';
+            $this->matching_rate = 85;
+            $this->log('Try to get by'. $this->matched_by);
+            
+            $office = $officeQuery
+                ->select("offices.id")
+                ->whereRaw("office_names.slug like '%$cleanNameSlug%'")
+                ->whereRaw("office_addresses.address1 like '%$address1%'")
+                ->whereRaw("((office_addresses.address2 like '%$address2%') or (office_addresses.address2 is null))")
+                ->whereRaw("office_addresses.city like '%$city%'")
+                ->first();
+        }
+
+        if (!$office) {
+            $officeQuery = clone $officeQueryBase;
+            $this->matched_by = 'clean slug office_name, city, phone';
+            $this->matching_rate = 85;
+            $this->log('Try to get by'. $this->matched_by);
+            
+            $office = $officeQuery
+                ->select("offices.id")
+                ->whereRaw("office_names.slug like '%$cleanNameSlug%'")
+                ->whereRaw("office_addresses.city like '%$city%'")
+                ->whereRaw("office_phones.slug like '%$phone%'")
+                ->first();
+        }
+
+        if (!$office) {
+            $officeQuery = clone $officeQueryBase;
+            $this->matched_by = 'clean slug office_name, phone';
+            $this->matching_rate = 80;
+            $this->log('Try to get by'. $this->matched_by);
+            
+            $office = $officeQuery
+                ->select("offices.id")
+                ->whereRaw("office_names.slug like '%$cleanNameSlug%'")
+                ->whereRaw("office_phones.slug like '%$phone%'")
+                ->first();
+        }
+
+        if (!$office) {
+            dd($shortPhoneNumbers);
+            if ($shortPhoneNumbers) {
+                $officeQuery = clone $officeQueryBase;
+                $this->matched_by = 'clean slug office_name, short phone';
+                $this->matching_rate = 75;
+                $this->log('Try to get by'. $this->matched_by);
+                foreach ($shortPhoneNumbers as $shortNumber)
+                 {
+                    $officeQuery->orWhereRaw("office_phones.slug like '%$shortNumber%'");
+                 }
+
+                $office = $officeQuery
+                    ->select("offices.id")
+                    ->whereRaw("office_names.slug like '%$cleanNameSlug%'")
+                    ->whereRaw("office_phones.slug like '%$phone%'")
+                    ->first();    
+                    dd($office->toSql());
+            }
+            
+        }
+
+        if (!$office) {
+            $officeQuery = clone $officeQueryBase;
+            $this->matched_by = 'clean slug office_name, city';
+            $this->matching_rate = 80;
+            $this->log('Try to get by'. $this->matched_by);
+            
+            $office = $officeQuery
+                ->select("offices.id")
+                ->whereRaw("office_names.slug like '%$cleanNameSlug%'")
+                ->whereRaw("office_addresses.city like '%$city%'")
+                ->first();
+        }
+
+/*
+        if (!$office) {
             $officeQuery = clone $officeQueryBase;
             $this->matched_by = 'soudex office_name';
             $this->matching_rate = 80;            
+            $this->log('Try to get by'. $this->matched_by);
+            
             $office = $officeQuery
                 ->select("offices.id")
                 ->whereRaw("levenshtein_ratio('".\Str::slug($name,'')."', office_names.slug) >80")
                 //->whereRaw("office_addresses.city like '%?%'", [$city])                
             ->first();            
         }
-
+*/
         $this->log('Check If was found');
         //dd($office->toArray());
         return $office;
@@ -216,7 +275,10 @@ class OfficeService extends BaseService
     private function updateName() {
     	$exist = false;    	
     	foreach ($this->office->names as $name) {			
-    		if ($name->name == $this->checkedRow['office_name'])
+    		if (
+                ($name->name == $this->checkedRow['office_name'])&&
+                ($name->source == $this->source)
+                )
     		{
     			$exist = true;
     		}    		
@@ -230,7 +292,10 @@ class OfficeService extends BaseService
     private function updateCompanyName() {
     	$exist = false;    	
     	foreach ($this->office->companyNames as $name) {			
-    		if ($name->company_name == $this->checkedRow['company_name'])
+    		if  (
+                ($name->company_name == $this->checkedRow['company_name']) &&
+                ($name->source == $this->source)
+                )
     		{
     			$exist = true;
     		}    		
@@ -247,7 +312,8 @@ class OfficeService extends BaseService
     		if (
                 ($address->address1 == $this->checkedRow['address1']) && 
                 ($address->address2 == $this->checkedRow['address2']) && 
-                ($address->city == $this->checkedRow['city']))
+                ($address->city == $this->checkedRow['city'])&&
+                ($address->source == $this->source))
     		{
     			$exist = true;
     		}    		
@@ -264,7 +330,10 @@ class OfficeService extends BaseService
         echo "update phone ".$this->checkedRow['office_phone'];
         $exist = false;     
         foreach ($this->office->phones as $phone) {            
-            if ($phone->phone == $this->checkedRow['office_phone'])
+            if (
+                ($phone->phone == $this->checkedRow['office_phone'])&&
+                ($phone->source == $this->source)
+               )
             {
                 $exist = true;
             }           
@@ -328,6 +397,7 @@ class OfficeService extends BaseService
             $relObject = new OfficePhone;
             $relObject->phone = $this->checkedRow['office_phone'];                    
             $relObject->source = $this->source;
+            $relObject->slug = StringHelpers::cleanupPhoneNumber($relObject->phone); 
             $relObject->source_row_id = $this->sourceRowId;            
             $relObject->matching_rate = $this->matching_rate;
             $relObject->matched_by = $this->matched_by;            
