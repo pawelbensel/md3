@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateAgentsTable extends Migration
+class CreateAgentOfficeTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,11 @@ class CreateAgentsTable extends Migration
      */
     public function up()
     {
-        Schema::create('agents', function (Blueprint $table) {
+        Schema::create('agent_office', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('license_number')->nullable();
-            $table->string('source');
+            $table->integer('agent_id')->unsigned();
+            $table->integer('office_id')->unsigned();
             $table->timestamps();
-            $table->index('license_number');
         });
     }
 
@@ -29,6 +28,6 @@ class CreateAgentsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('agents');
+        Schema::dropIfExists('agent_office');
     }
 }

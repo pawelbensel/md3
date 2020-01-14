@@ -10,4 +10,11 @@ class StringHelpers
 		return Str::slug(preg_replace('/\s+/', '', $string));
 
 	}
+
+	public static function escapeLike($string)
+    {
+        $search = array("'");
+        $replace   = array("\'");
+        return str_replace($search, $replace, $string);
+    }
 }

@@ -41,4 +41,9 @@ class Office extends Model
     {
         return $this->hasMany('App\Models\OfficeState');
     }
+
+    public function agents()
+    {
+        return $this->belongsToMany('App\Models\Agent');
+    }
 }

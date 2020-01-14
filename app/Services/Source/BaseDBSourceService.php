@@ -40,7 +40,7 @@ class BaseDBSourceService extends BaseSourceService
 
     public function getData()
     {
-        $this->dbConnection = $dbConnection;
+        return DB::connection($this->dbConnection)->table($this->tableName)->get();
     }
 
 

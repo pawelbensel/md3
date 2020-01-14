@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Helpers\StringHelpers;
 use Illuminate\Support\Facades\DB;
 
 use App\Models\Office;
@@ -29,6 +30,7 @@ class OfficeService extends BaseService
     public function setSourceRowId($sourceRowId) {
         $this->sourceRowId = $sourceRowId;
     }
+
     private function log($string){
         if (is_string($string)) {
             echo $string."\n\r";
@@ -135,10 +137,11 @@ class OfficeService extends BaseService
 
         $this->matched_by = 'office_name,address1, address2, city';
         $this->matching_rate = 100;
-        $name = $this->checkedRow['office_name'];
-        $address1 = $this->checkedRow['address1'];
-        $address2 = $this->checkedRow['address2'];        
-        $city = $this->checkedRow['city'];
+
+        $name = StringHelpers::escapeLike($this->checkedRow['office_name']);
+        $address1 = StringHelpers::escapeLike($this->checkedRow['address1']);
+        $address2 = StringHelpers::escapeLike($this->checkedRow['address2']);
+        $city = StringHelpers::escapeLike($this->checkedRow['city']);
         //$this->log($this->checkedRow);
         $officeQueryBase = Office::
             leftJoin('office_names', 'offices.id', '=', 'office_names.office_id')
@@ -164,6 +167,7 @@ class OfficeService extends BaseService
                 ->select("offices.id")
                 ->whereRaw("office_names.name like '%$name%'")
                 ->whereRaw("office_addresses.city like '%$city%'")
+                //Probably state will be needed here
                 //->whereRaw("office_addresses.city like '%?%'", [$city])                
             ->first();
         }
@@ -187,7 +191,7 @@ class OfficeService extends BaseService
             $this->log('Try to get by'. $this->matched_by);
             $office = $officeQuery
                 ->select("offices.id")
-                ->whereRaw("office_names.name like '%$name%'")            
+                ->whereRaw("office_names.name like '%$name%'")
                 //->whereRaw("office_addresses.city like '%?%'", [$city])                
             ->first();            
         }
