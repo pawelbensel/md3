@@ -16,13 +16,13 @@ use App\Models\OfficeName;
 use App\Models\OfficePhone;
 use App\Models\OfficeState;
 use App\Models\OfficeZip;
-use App\Helpers\StringHelpers;
+
 
 
 
 class OfficeService extends BaseService
 {
-    
+
     protected $office;
     protected $sourceObjectId;
     protected $sourceRowId;
@@ -32,11 +32,11 @@ class OfficeService extends BaseService
 
     public function __construct()
     {
-        
+
     }
 
     private function cleanUp($string) {
-        
+
         foreach ($this->cleanups as $clean) {
             $string = str_replace($clean,'',$string);
         }
@@ -61,21 +61,21 @@ class OfficeService extends BaseService
 
 
     private function getByMsaId() {
-		
+
 		if (isset($this->checkedRow['msa_id'])) {
-			
+
 			$msaId = $this->checkedRow['msa_id'];
-			
-			$office = Office::whereHas('msaIds', 
+
+			$office = Office::whereHas('msaIds',
 				function ($msaIds) use ($msaId) {
 	            	$msaIds->where([
 	               		'office_msa_ids.msa_id' => $msaId
 	            	]);
 	        	})
 	        ->with('names')
-	        ->first();        
-	        
-	        return $office;        
+	        ->first();
+
+	        return $office;
 	       }
 
 	    return null;
@@ -102,7 +102,7 @@ class OfficeService extends BaseService
 
         $this->matched_by = 'office_name, address1, address2, city, phone';
         $this->matching_rate = 100;
-        $this->log('Try to get by'. $this->matched_by);        
+        $this->log('Try to get by'. $this->matched_by);
         $officeQuery = clone $officeQueryBase;
         $office = $officeQuery
                 ->select("offices.id")
@@ -112,15 +112,15 @@ class OfficeService extends BaseService
                 ->whereRaw("office_addresses.city like '%$city%'")
                 ->whereRaw("office_phones.slug like '%$phone%'")
                 ->first();
-                        
+
 
         if (!$office) {
-            
+
             $officeQuery = clone $officeQueryBase;
             $this->matched_by = 'office_name,address1, address2, city,';
             $this->matching_rate = 98;
             $this->log('Try to get by'. $this->matched_by);
-            
+
             $office = $officeQuery
                 ->select("offices.id")
                 ->whereRaw("office_names.name like '%$name%'")
@@ -135,7 +135,7 @@ class OfficeService extends BaseService
             $this->matched_by = 'office_name, city, phone';
             $this->matching_rate = 95;
             $this->log('Try to get by'. $this->matched_by);
-            
+
             $office = $officeQuery
                 ->select("offices.id")
                 ->whereRaw("office_names.name like '%$name%'")
@@ -146,12 +146,12 @@ class OfficeService extends BaseService
         }
 
         if (!$office) {
-            
+
             $officeQuery = clone $officeQueryBase;
             $this->matched_by = 'slug office_name, address1, address2, city';
             $this->matching_rate = 90;
             $this->log('Try to get by'. $this->matched_by);
-            
+
             $office = $officeQuery
                 ->select("offices.id")
                 ->whereRaw("office_names.slug like '%$nameSlug%'")
@@ -162,12 +162,12 @@ class OfficeService extends BaseService
         }
 
         if (!$office) {
-            
+
             $officeQuery = clone $officeQueryBase;
             $this->matched_by = 'slug office_name, city, phone';
             $this->matching_rate = 90;
             $this->log('Try to get by'. $this->matched_by);
-            
+
             $office = $officeQuery
                 ->select("offices.id")
                 ->whereRaw("office_names.slug like '%$nameSlug%'")
@@ -181,7 +181,7 @@ class OfficeService extends BaseService
             $this->matched_by = 'clean slug office_name, address1, address2, city';
             $this->matching_rate = 85;
             $this->log('Try to get by'. $this->matched_by);
-            
+
             $office = $officeQuery
                 ->select("offices.id")
                 ->whereRaw("office_names.slug like '%$cleanNameSlug%'")
@@ -196,7 +196,7 @@ class OfficeService extends BaseService
             $this->matched_by = 'clean slug office_name, city, phone';
             $this->matching_rate = 85;
             $this->log('Try to get by'. $this->matched_by);
-            
+
             $office = $officeQuery
                 ->select("offices.id")
                 ->whereRaw("office_names.slug like '%$cleanNameSlug%'")
@@ -210,7 +210,7 @@ class OfficeService extends BaseService
             $this->matched_by = 'clean slug office_name, phone';
             $this->matching_rate = 80;
             $this->log('Try to get by'. $this->matched_by);
-            
+
             $office = $officeQuery
                 ->select("offices.id")
                 ->whereRaw("office_names.slug like '%$cleanNameSlug%'")
@@ -234,10 +234,10 @@ class OfficeService extends BaseService
                     ->select("offices.id")
                     ->whereRaw("office_names.slug like '%$cleanNameSlug%'")
                     ->whereRaw("office_phones.slug like '%$phone%'")
-                    ->first();    
+                    ->first();
                     dd($office->toSql());
             }
-            
+
         }
 
         if (!$office) {
@@ -245,7 +245,7 @@ class OfficeService extends BaseService
             $this->matched_by = 'clean slug office_name, city';
             $this->matching_rate = 80;
             $this->log('Try to get by'. $this->matched_by);
-            
+
             $office = $officeQuery
                 ->select("offices.id")
                 ->whereRaw("office_names.slug like '%$cleanNameSlug%'")
@@ -257,14 +257,14 @@ class OfficeService extends BaseService
         if (!$office) {
             $officeQuery = clone $officeQueryBase;
             $this->matched_by = 'soudex office_name';
-            $this->matching_rate = 80;            
+            $this->matching_rate = 80;
             $this->log('Try to get by'. $this->matched_by);
-            
+
             $office = $officeQuery
                 ->select("offices.id")
                 ->whereRaw("levenshtein_ratio('".\Str::slug($name,'')."', office_names.slug) >80")
-                //->whereRaw("office_addresses.city like '%?%'", [$city])                
-            ->first();            
+                //->whereRaw("office_addresses.city like '%?%'", [$city])
+            ->first();
         }
 */
         $this->log('Check If was found');
@@ -273,15 +273,15 @@ class OfficeService extends BaseService
     }
 
     private function updateName() {
-    	$exist = false;    	
-    	foreach ($this->office->names as $name) {			
+    	$exist = false;
+    	foreach ($this->office->names as $name) {
     		if (
                 ($name->name == $this->checkedRow['office_name'])&&
                 ($name->source == $this->source)
                 )
     		{
     			$exist = true;
-    		}    		
+    		}
     	}
 
     	if (!$exist) {
@@ -290,15 +290,15 @@ class OfficeService extends BaseService
     }
 
     private function updateCompanyName() {
-    	$exist = false;    	
-    	foreach ($this->office->companyNames as $name) {			
+    	$exist = false;
+    	foreach ($this->office->companyNames as $name) {
     		if  (
                 ($name->company_name == $this->checkedRow['company_name']) &&
                 ($name->source == $this->source)
                 )
     		{
     			$exist = true;
-    		}    		
+    		}
     	}
 
     	if (!$exist) {
@@ -307,16 +307,16 @@ class OfficeService extends BaseService
     }
 
     private function updateAddress() {
-    	$exist = false;    	
-    	foreach ($this->office->addresses as $address) {            
+    	$exist = false;
+    	foreach ($this->office->addresses as $address) {
     		if (
-                ($address->address1 == $this->checkedRow['address1']) && 
-                ($address->address2 == $this->checkedRow['address2']) && 
+                ($address->address1 == $this->checkedRow['address1']) &&
+                ($address->address2 == $this->checkedRow['address2']) &&
                 ($address->city == $this->checkedRow['city'])&&
                 ($address->source == $this->source))
     		{
     			$exist = true;
-    		}    		
+    		}
     	}
 
     	if (!$exist) {
@@ -328,15 +328,15 @@ class OfficeService extends BaseService
     private function updatePhone() {
 
         echo "update phone ".$this->checkedRow['office_phone'];
-        $exist = false;     
-        foreach ($this->office->phones as $phone) {            
+        $exist = false;
+        foreach ($this->office->phones as $phone) {
             if (
                 ($phone->phone == $this->checkedRow['office_phone'])&&
                 ($phone->source == $this->source)
                )
             {
                 $exist = true;
-            }           
+            }
         }
 
         if (!$exist) {
@@ -370,12 +370,12 @@ class OfficeService extends BaseService
     		$relObject->source = $this->source;
             $relObject->matching_rate = $this->matching_rate;
             $relObject->matched_by = $this->matched_by;
-            
+
     		$this->office->names()->save($relObject);
     	}
     }
 
-	private function addCompanyName() {	
+	private function addCompanyName() {
 
 		if (isset($this->checkedRow['company_name'])){
             echo "ADD PHONE";
@@ -385,66 +385,66 @@ class OfficeService extends BaseService
     		$relObject->source = $this->source;
             $relObject->matching_rate = $this->matching_rate;
             $relObject->matched_by = $this->matched_by;
-            
+
     		$this->office->companyNames()->save($relObject);
     	}
     }
 
-    private function addPhone() { 
+    private function addPhone() {
 
         if (isset($this->checkedRow['office_phone'])){
 
             $relObject = new OfficePhone;
-            $relObject->phone = $this->checkedRow['office_phone'];                    
+            $relObject->phone = $this->checkedRow['office_phone'];
             $relObject->source = $this->source;
-            $relObject->slug = StringHelpers::cleanupPhoneNumber($relObject->phone); 
-            $relObject->source_row_id = $this->sourceRowId;            
+            $relObject->slug = StringHelpers::cleanupPhoneNumber($relObject->phone);
+            $relObject->source_row_id = $this->sourceRowId;
             $relObject->matching_rate = $this->matching_rate;
-            $relObject->matched_by = $this->matched_by;            
+            $relObject->matched_by = $this->matched_by;
             $this->office->phones()->save($relObject);
         }
     }
 
-    private function addZip() { 
+    private function addZip() {
 
         if (isset($this->checkedRow['zip'])){
             $relObject = new OfficeZip;
-            $relObject->zip = $this->checkedRow['zip'];                    
+            $relObject->zip = $this->checkedRow['zip'];
             $relObject->source = $this->source;
-            $relObject->source_row_id = $this->sourceRowId;            
+            $relObject->source_row_id = $this->sourceRowId;
             $relObject->matching_rate = $this->matching_rate;
-            $relObject->matched_by = $this->matched_by;            
+            $relObject->matched_by = $this->matched_by;
             $this->office->zips()->save($relObject);
         }
     }
-	
-    private function addAddress() {	
+
+    private function addAddress() {
 		if (isset($this->checkedRow['address1']) || isset($this->checkedRow['address2'])||isset($this->checkedRow['city']))
 		{
     		$relObject = new OfficeAddress;
     		if (isset($this->checkedRow['address1'])) {
     			$relObject->address1 = $this->checkedRow['address1'];
-    		
+
        		}
 
     		if (isset($this->checkedRow['address2'])) {
-    			$relObject->address2 = $this->checkedRow['address2'];    	
+    			$relObject->address2 = $this->checkedRow['address2'];
     		}
 
             if (isset($this->checkedRow['city'])) {
-                $relObject->city = $this->checkedRow['city'];                
+                $relObject->city = $this->checkedRow['city'];
             }
 
     		$relObject->source = $this->source;
             $relObject->source_row_id = $this->sourceRowId;
             $relObject->matching_rate = $this->matching_rate;
             $relObject->matched_by = $this->matched_by;
-            
+
     		$this->office->addresses()->save($relObject);
     	}
 	}
 
-    private function create() {	    	
+    private function create() {
     	$this->office = Office::create(['source' => $this->source]);
         $this->matching_rate = 100;
         $this->matched_by = null;
@@ -462,8 +462,8 @@ class OfficeService extends BaseService
     }
 
     public function match() {
-		        
-		if ($office = $this->getByName2()) 
+
+		if ($office = $this->getByName2())
     		return $office;
 
     	$office = $this->create();
@@ -476,13 +476,13 @@ class OfficeService extends BaseService
 
         	$this->checkedRow = $row;
             $this->sourceObjectId = $row['source_object']['source_object_id'];
-        	$this->office = $this->match();            
-        	   if (!$this->office->wasRecentlyCreated) {        		
-                    $this->update();        	
-            }            
+        	$this->office = $this->match();
+        	   if (!$this->office->wasRecentlyCreated) {
+                    $this->update();
+            }
             return $this->office->id;
 
-    	
+
     }
 
 
