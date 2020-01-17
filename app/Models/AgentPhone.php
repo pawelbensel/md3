@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class AgentPhone extends Model
 {
-    //
+    protected $fillable = ['phone'];
 }

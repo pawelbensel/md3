@@ -72,6 +72,15 @@ return [
             ],
         ],
 
+        'rets' => [
+            'driver' => 'single',
+            'path' => storage_path('errors/rets/erros.log'),
+        ],
+        'ris' => [
+            'driver' => 'single',
+            'path' => storage_path('errors/ris/erros.log'),
+        ],
+
         'stderr' => [
             'driver' => 'monolog',
             'handler' => StreamHandler::class,

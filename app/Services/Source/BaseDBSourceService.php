@@ -2,14 +2,16 @@
 
 namespace App\Services\Source;
 
+use Illuminate\Support\Facades\DB;
+
 class BaseDBSourceService extends BaseSourceService
 {
-    
+
     protected $limit = 100;
     protected $offset = 0;
     protected $tableName;
-    protected $dbConnection;    
-    protected $tableCounter = null; 
+    protected $dbConnection;
+    protected $tableCounter = null;
     protected $data;
 
     public function setOffset(int $offset)
@@ -33,18 +35,28 @@ class BaseDBSourceService extends BaseSourceService
     }
 
     public function getCounter(?string $tableName = null)
-    {        
+    {
         $table = $tableName ?? $this->tableName;
         return DB::connection($this->dbConnection)->table($table)->count();
     }
 
     public function getData()
     {
-        return DB::connection($this->dbConnection)->table($this->tableName)->get();
+        return $this->data = DB::connection($this->dbConnection)->table($this->tableName)->skip($this->offset)->take($this->limit)->get();
     }
 
+    public function next()
+    {
+        $this->setOffset($this->offset + $this->limit);
+    }
 
+    public function getSegmentMaxIndex()
+    {
+        if($this->offset== 0){
+            return $this->limit;
+        }
 
+        return $this->offset+$this->limit;
+    }
 
-   
 }

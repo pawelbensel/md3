@@ -26,6 +26,7 @@ class OfficeService extends BaseService
     protected $office;
     protected $sourceObjectId;
     protected $sourceRowId;
+    protected $mlsName;
     protected $cleanups = [
                     'inc'
                 ];
@@ -43,7 +44,10 @@ class OfficeService extends BaseService
             return $string;
     }
 
-
+    public function setMlsName(string $mlsName)
+    {
+        $this->mlsName  = $mlsName;
+    }
 
     public function setSourceRowId($sourceRowId) {
         $this->sourceRowId = $sourceRowId;
@@ -87,7 +91,10 @@ class OfficeService extends BaseService
         $nameSlug = StringHelpers::slug($this->checkedRow['office_name']);
         $cleanNameSlug = $this->cleanUp($nameSlug);
         $address1 = StringHelpers::escapeLike($this->checkedRow['address1']);
-        $address2 = StringHelpers::escapeLike($this->checkedRow['address2']);
+        $address2 = (array_key_exists('address2', $this->checkedRow))?
+                StringHelpers::escapeLike($this->checkedRow['address2'])
+                :'';
+        $this->checkedRow['address2'] = $address2;
         $city = StringHelpers::escapeLike($this->checkedRow['city']);
         $phone = StringHelpers::cleanupPhoneNumber($this->checkedRow['office_phone']);
         $shortPhoneNumbers = StringHelpers::shortPhoneNumber($cleanNameSlug);
@@ -219,7 +226,6 @@ class OfficeService extends BaseService
         }
 
         if (!$office) {
-            dd($shortPhoneNumbers);
             if ($shortPhoneNumbers) {
                 $officeQuery = clone $officeQueryBase;
                 $this->matched_by = 'clean slug office_name, short phone';
@@ -235,7 +241,6 @@ class OfficeService extends BaseService
                     ->whereRaw("office_names.slug like '%$cleanNameSlug%'")
                     ->whereRaw("office_phones.slug like '%$phone%'")
                     ->first();
-                    dd($office->toSql());
             }
 
         }
@@ -390,6 +395,19 @@ class OfficeService extends BaseService
     	}
     }
 
+    private function addMlsId() {
+        if (isset($this->checkedRow['mls_id'])) {
+            $relObject = new OfficeMlsId();
+            $relObject->mls_id = $this->checkedRow['mls_id'];
+            $relObject->mls_name = $this->mlsName;
+            $relObject->source = $this->source;
+            $relObject->source_row_id = $this->sourceRowId;
+            $relObject->matching_rate = $this->matching_rate;
+            $relObject->matched_by = $this->matched_by;
+            $this->office->mlsIds()->save($relObject);
+        }
+    }
+
     private function addPhone() {
 
         if (isset($this->checkedRow['office_phone'])){
@@ -454,7 +472,8 @@ class OfficeService extends BaseService
     	$this->addAddress();
         $this->addZip();
         $this->addPhone();
-         //state
+        $this->addMlsId();
+        $this->addZip();
         $this->log('Add the office');
         $this->log($this->office->name);
         $this->log($this->office->id);
@@ -481,8 +500,6 @@ class OfficeService extends BaseService
                     $this->update();
             }
             return $this->office->id;
-
-
     }
 
 

@@ -46,4 +46,9 @@ class Office extends Model
     {
         return $this->belongsToMany('App\Models\Agent');
     }
+
+    public function mlsIds()
+    {
+        return $this->hasMany('App\Models\OfficeMlsId');
+    }
 }

@@ -1,19 +1,23 @@
-<?php 
+<?php
 
 namespace App\Helpers;
 use Illuminate\Support\Str;
 
 
-class StringHelpers 
+class StringHelpers
 {
-	public static function slug(string $string) {
-		
+	public static function slug(?string $string) {
+		if(!$string) {
+		    return null;
+        }
 		return \Str::slug($string,'');
 
 	}
 
-	public static function cleanupPhoneNumber(string $string) {
-		
+	public static function cleanupPhoneNumber(?string $string) {
+		if(!$string){
+		    return null;
+        }
 		$phone = \Str::slug($string,'');
 		if ($phone[0] == '1')
 		{
@@ -23,7 +27,7 @@ class StringHelpers
 	}
 
 	public static function shortPhoneNumber(string $string) {
-		
+
 		if ((strlen($string)) > 10){
 			$arr[] = substr($string,10-strlen($string));
 			$arr[] = substr($string,10);

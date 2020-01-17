@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use App\Services\Source\RisSourceService ;
 use App\Services\OfficeService;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 
 class RisCommmand extends Command
 {
@@ -16,7 +17,8 @@ class RisCommmand extends Command
      *
      * @var string
      */
-    protected $signature = 'ris:parse {office_id? : Set scope of office id for the command }';
+    protected $signature = 'ris:parse {office_id? : Set scope of office id for the command }
+                                       {--all }';
 
     /**
      * The console command description.
@@ -25,7 +27,6 @@ class RisCommmand extends Command
      */
     protected $description = 'Command description';
 
-    
     /**
      * Create a new command instance.
      *
@@ -43,8 +44,21 @@ class RisCommmand extends Command
      */
     public function handle()
     {
-
         $source = new RisSourceService();
+
+        if($this->option('all')){
+            while($source->getCounter()>$source->getSegmentMaxIndex())
+            {
+                $this->parseDataSegment($source);
+                $source->next();
+            }
+        } else {
+            $this->parseDataSegment($source);
+        }
+    }
+
+    public function parseDataSegment($source)
+    {
         $source->getData();
         $data = $source->parseData();
 
@@ -56,6 +70,7 @@ class RisCommmand extends Command
         $agent->setSource($source->getSource());
 
         foreach ($data as $row) {
+            try {
                 $office->setSourceRowId($row['source_row']['source_row_id']);
                 $officeId = $office->getId($row['office']);
                 $currentOffice = Office::find($officeId);
@@ -63,6 +78,9 @@ class RisCommmand extends Command
                 $agent->setOffice($currentOffice);
                 $agent->setSourceRowId($row['source_row']['source_row_id']);
                 $agent->getId($row['agent']);
+            }catch (\Exception $e){
+                Log::channel('ris')->error('Could not parse data', (array) $e);
+            }
         }
     }
 }

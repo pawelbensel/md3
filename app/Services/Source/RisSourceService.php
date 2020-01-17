@@ -43,7 +43,7 @@ class RisSourceService extends BaseDBSourceService
 
 
 
-    public function getData()
+    /*public function getData()
     {
         $this->data = \DB::connection($this->dbConnection)
                 ->table($this->tableName)
@@ -52,14 +52,14 @@ class RisSourceService extends BaseDBSourceService
                 ->get();
 
         return $this->data;
-    }
+    }*/
 
     public function parseData()
     {
         
         foreach ($this->data as $row) {            
             $returnArray[] = $this->map($row);
-        } 
+        }
         return $returnArray;
     }
 

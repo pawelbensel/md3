@@ -37,7 +37,6 @@ class BaseSourceService
      */
 
     public function map($row){
-        
         foreach($this->mapArray as $objectType => $objectMap) {
             $sourceData = [];
             foreach ($objectMap as $destinationName => $sourceName) {
@@ -58,9 +57,8 @@ class BaseSourceService
         $sourceData['source_row_id'] = $sr->id;
         $sourceData['parse_source_row'] = !$sr->parsed;
         $returnArray['source_row'] = $sourceData;
+
         return $returnArray;
     }
 
-    
-   
 }
