@@ -111,15 +111,25 @@ class OfficeService extends BaseService
         $this->matching_rate = 100;
         $this->log('Try to get by'. $this->matched_by);
         $officeQuery = clone $officeQueryBase;
-        $office = $officeQuery
-                ->select("offices.id")
-                ->whereRaw("office_names.name like '%$name%'")
-                ->whereRaw("office_addresses.address1 like '%$address1%'")
-                ->whereRaw("((office_addresses.address2 like '%$address2%') or (office_addresses.address2 is null))")
-                ->whereRaw("office_addresses.city like '%$city%'")
-                ->whereRaw("office_phones.slug like '%$phone%'")
-                ->first();
+        $officeQuery
+                ->select("offices.id");
+        if(!empty($name)) {
+            $officeQuery->whereRaw("office_names.name like '%$name%'");
+        }
+        if(!empty($address1)) {
+            $officeQuery->whereRaw("office_addresses.address1 like '%$address1%'");
+        }
+        if(!empty($address2)){
+            $officeQuery->whereRaw("office_addresses.address2 like '%$address2%'");
+        }
+        if(!empty($city)){
+            $officeQuery->whereRaw("office_addresses.city like '%$city%'");
+        }
+        if(!empty($phone)){
+            $officeQuery->whereRaw("office_phones.slug like '%$phone%'");
+        }
 
+        $office = $officeQuery->first();
 
         if (!$office) {
 
