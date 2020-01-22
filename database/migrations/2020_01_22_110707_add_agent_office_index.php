@@ -13,9 +13,7 @@ class AddAgentOfficeIndex extends Migration
      */
     public function up()
     {
-        Schema::table('agent_office', function (Blueprint $table) {                
-            $table->index('agent_id');
-            $table->index('office_id');
+        Schema::table('agent_office', function (Blueprint $table) {                            
             $table->index(['office_id','agent_id']);
             }); 
     }
