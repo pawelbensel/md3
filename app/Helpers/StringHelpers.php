@@ -40,7 +40,7 @@ class StringHelpers
     {
         $search = array("'");
         $replace   = array("\'");
-        return str_replace($search, $replace, $string);
+        return strtolower(str_replace($search, $replace, $string));
     }
 
 }

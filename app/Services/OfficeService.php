@@ -114,19 +114,19 @@ class OfficeService extends BaseService
         $officeQuery
                 ->select("offices.id");
         if(!empty($name)) {
-            $officeQuery->whereRaw("office_names.name like '%$name%'");
+            $officeQuery->whereRaw("lower(office_names.name) = '$name'");
         }
         if(!empty($address1)) {
-            $officeQuery->whereRaw("office_addresses.address1 like '%$address1%'");
+            $officeQuery->whereRaw("lower(office_addresses.address1) = '$address1'");
         }
         if(!empty($address2)){
-            $officeQuery->whereRaw("office_addresses.address2 like '%$address2%'");
+            $officeQuery->whereRaw("lower(office_addresses.address2) = '$address2'");
         }
         if(!empty($city)){
-            $officeQuery->whereRaw("office_addresses.city like '%$city%'");
+            $officeQuery->whereRaw("lower(office_addresses.city) = '$city'");
         }
         if(!empty($phone)){
-            $officeQuery->whereRaw("office_phones.slug like '%$phone%'");
+            $officeQuery->whereRaw("office_phones.slug = '$phone'");
         }
 
         $office = $officeQuery->first();
@@ -138,13 +138,16 @@ class OfficeService extends BaseService
             $this->matching_rate = 98;
             $this->log('Try to get by'. $this->matched_by);
 
-            $office = $officeQuery
+            $officeQuery
                 ->select("offices.id")
-                ->whereRaw("office_names.name like '%$name%'")
-                ->whereRaw("office_addresses.address1 like '%$address1%'")
-                ->whereRaw("((office_addresses.address2 like '%$address2%') or (office_addresses.address2 is null))")
-                ->whereRaw("office_addresses.city like '%$city%'")
-                ->first();
+                ->whereRaw("lower(office_names.name) = '$name'")
+                ->whereRaw("lower(office_addresses.address1) = '$address1'")
+                ->whereRaw("lower(office_addresses.city) = '$city'");
+            if(!empty($address2))
+            {
+                $officeQuery->whereRaw("lower(office_addresses.address2) = '$address2'");
+            }
+            $office = $officeQuery->first();
         }
 
         if (!$office) {
@@ -155,10 +158,9 @@ class OfficeService extends BaseService
 
             $office = $officeQuery
                 ->select("offices.id")
-                ->whereRaw("office_names.name like '%$name%'")
-                ->whereRaw("office_addresses.address1 like '%$address1%'")
-                ->whereRaw("((office_addresses.address2 like '%$address2%') or (office_addresses.address2 is null))")
-                ->whereRaw("office_addresses.city like '%$city%'")
+                ->whereRaw("lower(office_names.name) = '$name'")
+                ->whereRaw("lower(office_addresses.city) = '$city'")
+                ->whereRaw("office_phones.slug = '$phone'")
                 ->first();
         }
 
@@ -169,13 +171,17 @@ class OfficeService extends BaseService
             $this->matching_rate = 90;
             $this->log('Try to get by'. $this->matched_by);
 
-            $office = $officeQuery
+             $officeQuery
                 ->select("offices.id")
-                ->whereRaw("office_names.slug like '%$nameSlug%'")
-                ->whereRaw("office_addresses.address1 like '%$address1%'")
-                ->whereRaw("((office_addresses.address2 like '%$address2%') or (office_addresses.address2 is null))")
-                ->whereRaw("office_addresses.city like '%$city%'")
-                ->first();
+                ->whereRaw("office_names.slug = '$nameSlug'")
+                ->whereRaw("office_addresses.address1 like '$address1'")
+                ->whereRaw("lower(office_addresses.city) = '$city'");
+            if(!empty($address2))
+            {
+                $officeQuery->whereRaw("lower(office_addresses.address2) = '$address2'");
+            }
+
+            $office = $officeQuery->first();
         }
 
         if (!$office) {
@@ -187,9 +193,9 @@ class OfficeService extends BaseService
 
             $office = $officeQuery
                 ->select("offices.id")
-                ->whereRaw("office_names.slug like '%$nameSlug%'")
-                ->whereRaw("office_addresses.city like '%$city%'")
-                ->whereRaw("office_phones.slug like '%$phone%'")
+                ->whereRaw("office_names.slug = '$nameSlug'")
+                ->whereRaw("lower(office_addresses.city) = '$city'")
+                ->whereRaw("office_phones.slug = '$phone'")
                 ->first();
         }
 
@@ -199,13 +205,17 @@ class OfficeService extends BaseService
             $this->matching_rate = 85;
             $this->log('Try to get by'. $this->matched_by);
 
-            $office = $officeQuery
+            $officeQuery
                 ->select("offices.id")
-                ->whereRaw("office_names.slug like '%$cleanNameSlug%'")
-                ->whereRaw("office_addresses.address1 like '%$address1%'")
-                ->whereRaw("((office_addresses.address2 like '%$address2%') or (office_addresses.address2 is null))")
-                ->whereRaw("office_addresses.city like '%$city%'")
-                ->first();
+                ->whereRaw("office_names.slug = '$cleanNameSlug'")
+                ->whereRaw("office_addresses.address1 like '$address1'")
+                ->whereRaw("lower(office_addresses.city) = '$city'");
+            if(!empty($address2))
+            {
+                $officeQuery->whereRaw("lower(office_addresses.address2) = '$address2'");
+            }
+
+            $office = $officeQuery->first();
         }
 
         if (!$office) {
@@ -216,9 +226,9 @@ class OfficeService extends BaseService
 
             $office = $officeQuery
                 ->select("offices.id")
-                ->whereRaw("office_names.slug like '%$cleanNameSlug%'")
-                ->whereRaw("office_addresses.city like '%$city%'")
-                ->whereRaw("office_phones.slug like '%$phone%'")
+                ->whereRaw("office_names.slug = '$cleanNameSlug'")
+                ->whereRaw("lower(office_addresses.city) = '$city'")
+                ->whereRaw("office_phones.slug = '$phone'")
                 ->first();
         }
 
@@ -230,12 +240,12 @@ class OfficeService extends BaseService
 
             $office = $officeQuery
                 ->select("offices.id")
-                ->whereRaw("office_names.slug like '%$cleanNameSlug%'")
-                ->whereRaw("office_phones.slug like '%$phone%'")
+                ->whereRaw("office_names.slug = '$cleanNameSlug'")
+                ->whereRaw("office_phones.slug = '$phone'")
                 ->first();
         }
 
-        if (!$office) {
+        if (!$office && ($name != '' || $name != null)) {
             if ($shortPhoneNumbers) {
                 $officeQuery = clone $officeQueryBase;
                 $this->matched_by = 'clean slug office_name, short phone';
@@ -263,27 +273,13 @@ class OfficeService extends BaseService
 
             $office = $officeQuery
                 ->select("offices.id")
-                ->whereRaw("office_names.slug like '%$cleanNameSlug%'")
-                ->whereRaw("office_addresses.city like '%$city%'")
+                ->whereRaw("office_names.slug = '$cleanNameSlug'")
+                ->whereRaw("lower(office_addresses.city) = '$city'")
                 ->first();
         }
 
-/*
-        if (!$office) {
-            $officeQuery = clone $officeQueryBase;
-            $this->matched_by = 'soudex office_name';
-            $this->matching_rate = 80;
-            $this->log('Try to get by'. $this->matched_by);
-
-            $office = $officeQuery
-                ->select("offices.id")
-                ->whereRaw("levenshtein_ratio('".\Str::slug($name,'')."', office_names.slug) >80")
-                //->whereRaw("office_addresses.city like '%?%'", [$city])
-            ->first();
-        }
-*/
         $this->log('Check If was found');
-        //dd($office->toArray());
+
         return $office;
     }
 
