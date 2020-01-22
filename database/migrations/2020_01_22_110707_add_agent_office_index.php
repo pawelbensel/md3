@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateAgentOfficeTable extends Migration
+class AddAgentOfficeIndex extends Migration
 {
     /**
      * Run the migrations.
@@ -13,14 +13,11 @@ class CreateAgentOfficeTable extends Migration
      */
     public function up()
     {
-        Schema::create('agent_office', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->integer('agent_id')->unsigned();
-            $table->integer('office_id')->unsigned();
-            $table->timestamps();
+        Schema::table('agent_office', function (Blueprint $table) {                
             $table->index('agent_id');
             $table->index('office_id');
-        });
+            $table->index(['office_id','agent_id']);
+            }); 
     }
 
     /**
@@ -30,6 +27,6 @@ class CreateAgentOfficeTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('agent_office');
+        //
     }
 }
