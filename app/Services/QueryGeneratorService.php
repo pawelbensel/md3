@@ -50,16 +50,19 @@ class QueryGeneratorService
         $this->operators['<'] = ['operator' => '<'];
         $this->operators['<='] = ['operator' => '<='];
         $this->operators['<>'] = ['operator' => '<>'];
-        $this->operators['equals'] = $this->operators['='];
+        $this->operators['equal to'] = $this->operators['='];
         $this->operators['contains'] = ['operator' => 'like', 'pre'=>'%', 'post'=>'%'];
         $this->operators['does not contain'] = ['operator' => 'not like', 'pre'=>'%', 'post'=>'%'];
-        $this->operators['begins with'] = ['operator' => 'like', 'post'=>'%'];
+        $this->operators['starts with'] = ['operator' => 'like', 'post'=>'%'];
         $this->operators['ends with'] = ['operator' => 'like', 'pre'=>'%'];
         $this->operators['is empty'] = ['operator' => '=', 'value'=>''];
-        $this->operators['is not empty'] = ['operator' => '<>', 'value'=>''];
-        $this->operators['ends with'] = ['operator' => 'like', 'pre'=>'%'];
+        $this->operators['is not empty'] = ['operator' => '<>', 'value'=>''];        
         $this->operators['at least'] = $this->operators['>='];
         $this->operators['less then'] = $this->operators['<'];
+        $this->operators['less or equal to'] = $this->operators['<='];
+        $this->operators['more then'] = $this->operators['>'];
+        $this->operators['more or equal to'] = $this->operators['>='];
+        
     }
 
     private function setGroupBy() {
@@ -128,11 +131,11 @@ class QueryGeneratorService
     }
 
     private function parseQBRule($query, $rule, $method) {
-        $operator = $rule['query']['operator'];
+        $operator = $rule['query']['selectedOperator'];
         $value = $rule['query']['value'];
         $field = $rule['query']['rule'];
         
-        if ($rule['query']['operator'] <> 'in') {
+        if ($rule['query']['selectedOperator'] <> 'in') {
             $query->{$method}($this->getField($field), $this->getOperator($operator), $this->getParsedValue($value, $operator));
         } else  {            
             $query->whereIn($this->getField($field), $this->getParsedValue($value, $operator));

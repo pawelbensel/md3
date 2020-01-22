@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::get('qb', 'Api\QueryBuilderController@build');
+Route::post('qb', 'Api\QueryBuilderController@build');
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
