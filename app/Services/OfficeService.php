@@ -97,7 +97,7 @@ class OfficeService extends BaseService
         $this->checkedRow['address2'] = $address2;
         $city = StringHelpers::escapeLike($this->checkedRow['city']);
         $phone = StringHelpers::cleanupPhoneNumber($this->checkedRow['office_phone']);
-        $shortPhoneNumbers = StringHelpers::shortPhoneNumber($cleanNameSlug);
+        $shortPhoneNumbers = StringHelpers::shortPhoneNumber($phone);
 
         $officeQueryBase = Office::
             leftJoin('office_names', 'offices.id', '=', 'office_names.office_id')
