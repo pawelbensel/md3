@@ -71,7 +71,10 @@ return [
                 'port' => env('PAPERTRAIL_PORT'),
             ],
         ],
-
+        'drbill' => [
+            'driver' => 'single',
+            'path' => storage_path('errors/drbill/erros.log'),
+        ],
         'rets' => [
             'driver' => 'single',
             'path' => storage_path('errors/rets/erros.log'),
