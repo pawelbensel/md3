@@ -385,7 +385,7 @@ class OfficeService extends BaseService
         $exist = false;
         foreach ($this->office->phones as $phone) {
             if (
-                ($phone->slug == $this->checkedRow['office_phone'])&&
+                ($phone->phone == $this->checkedRow['office_phone'])&&
                 ($phone->source == $this->source)
                )
             {
@@ -405,7 +405,7 @@ class OfficeService extends BaseService
         $exist = false;
         foreach ($this->office->zips as $zip) {
             if (
-                ($zip->phone == $this->checkedRow['zip'])&&
+                ($zip->zip == $this->checkedRow['zip'])&&
                 ($zip->source == $this->source)
             )
             {

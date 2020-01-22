@@ -26,8 +26,11 @@ class StringHelpers
 		return $phone;
 	}
 
-	public static function shortPhoneNumber(string $string) {
-
+	public static function shortPhoneNumber(?string $string) {
+		if(!$string){
+		    return null;
+        }
+	
 		if ((strlen($string)) > 10){
 			$arr[] = substr($string,-9);
 			$arr[] = substr($string,0,9);
