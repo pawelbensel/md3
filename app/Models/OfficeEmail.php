@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use App\Traits\Checkable;
 use Illuminate\Database\Eloquent\Model;
 
 class OfficeEmail extends Model
 {
-    //
+    use Checkable;
 }

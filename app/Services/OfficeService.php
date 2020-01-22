@@ -128,7 +128,6 @@ class OfficeService extends BaseService
         if(!empty($phone)){
             $officeQuery->whereRaw("office_phones.slug = '$phone'");
         }
-
         $office = $officeQuery->first();
 
         if (!$office) {
@@ -278,21 +277,23 @@ class OfficeService extends BaseService
                 ->first();
         }
 
-        $this->log('Check If was found');
-
         return $office;
     }
 
     private function updateName() {
     	$exist = false;
     	foreach ($this->office->names as $name) {
-    		if (
+    		
+            if (
                 ($name->name == $this->checkedRow['office_name'])&&
                 ($name->source == $this->source)
                 )
     		{
     			$exist = true;
+                //$name->addPassed();
     		}
+            //$name->addChecked();
+            //$name->save();
     	}
 
     	if (!$exist) {
@@ -309,7 +310,10 @@ class OfficeService extends BaseService
                 )
     		{
     			$exist = true;
+                //$name->addPassed();
     		}
+            //$name->addChecked();
+            //$name->save();
     	}
 
     	if (!$exist) {
@@ -327,7 +331,10 @@ class OfficeService extends BaseService
                 ($address->source == $this->source))
     		{
     			$exist = true;
+                //$address->addPassed();
     		}
+    		//$address->addChecked();
+    		//$address->save();
     	}
 
     	if (!$exist) {
@@ -335,19 +342,58 @@ class OfficeService extends BaseService
     	}
     }
 
+    private function updateMsaId() {
+        $exist = false;
+        foreach ($this->office->msaIds as $msaId) {
+            if (
+                ($msaId->msa_id == $this->checkedRow['msa_id']) &&
+                ($msaId->source == $this->source))
+            {
+                $exist = true;
+                //$msaId->addPassed();
+            }
+            //$msaId->addChecked();
+            //$msaId->save();
+        }
+
+        if (!$exist) {
+            $this->addMsaId();
+        }
+    }
+
+    private function updateMlsId() {
+        $exist = false;
+        foreach ($this->office->mlsIds as $mlsId) {
+            if (
+                ($mlsId->mls_id == $this->checkedRow['mls_id']) &&
+                ($mlsId->source == $this->source))
+            {
+                $exist = true;
+                //$mlsId->addPassed();
+            }
+            //$mlsId->addChecked();
+            //$mlsId->save();
+        }
+
+        if (!$exist) {
+            $this->addMlsId();
+        }
+    }
+
 
     private function updatePhone() {
-
-        echo "update phone ".$this->checkedRow['office_phone'];
         $exist = false;
         foreach ($this->office->phones as $phone) {
             if (
-                ($phone->phone == $this->checkedRow['office_phone'])&&
+                ($phone->slug == $this->checkedRow['office_phone'])&&
                 ($phone->source == $this->source)
                )
             {
                 $exist = true;
+                //$phone->addPassed();
             }
+            //$phone->addChecked();
+            //$phone->save();
         }
 
         if (!$exist) {
@@ -355,11 +401,56 @@ class OfficeService extends BaseService
         }
     }
 
+    private function updateZip() {
+        $exist = false;
+        foreach ($this->office->zips as $zip) {
+            if (
+                ($zip->phone == $this->checkedRow['zip'])&&
+                ($zip->source == $this->source)
+            )
+            {
+                $exist = true;
+                //$zip->addPassed();
+            }
+            //$zip->addChecked();
+            //$zip->save();
+        }
+
+        if (!$exist) {
+            $this->addZip();
+        }
+    }
+
+    private function updateState() {
+
+        $exist = false;
+        foreach ($this->office->states as $state) {
+            if (
+                ($state->state == $this->checkedRow['state'])&&
+                ($state->source == $this->source)
+            )
+            {
+                $exist = true;
+                //$state->addPassed();
+            }
+            //$state->addChecked();
+            //$state->save();
+        }
+
+        if (!$exist) {
+            $this->addState();
+        }
+    }
+
     private function update() {
-    	$this->updateName();
+        $this->updateName();
     	$this->updateCompanyName();
     	$this->updateAddress();
-        $this->updatePhone();
+    	$this->updatePhone();
+    	$this->updateMsaId();
+    	$this->updateMlsId();
+    	$this->updateZip();
+        $this->updateState();
     }
 
     private function addMsaId() {
@@ -389,7 +480,6 @@ class OfficeService extends BaseService
 	private function addCompanyName() {
 
 		if (isset($this->checkedRow['company_name'])){
-            echo "ADD PHONE";
     		$relObject = new OfficeCompanyName;
     		$relObject->company_name = $this->checkedRow['company_name'];
             $relObject->source_row_id = $this->sourceRowId;
@@ -417,7 +507,6 @@ class OfficeService extends BaseService
     private function addPhone() {
 
         if (isset($this->checkedRow['office_phone'])){
-
             $relObject = new OfficePhone;
             $relObject->phone = $this->checkedRow['office_phone'];
             $relObject->source = $this->source;
@@ -426,6 +515,7 @@ class OfficeService extends BaseService
             $relObject->matching_rate = $this->matching_rate;
             $relObject->matched_by = $this->matched_by;
             $this->office->phones()->save($relObject);
+
         }
     }
 
@@ -439,6 +529,19 @@ class OfficeService extends BaseService
             $relObject->matching_rate = $this->matching_rate;
             $relObject->matched_by = $this->matched_by;
             $this->office->zips()->save($relObject);
+        }
+    }
+
+    private function addState() {
+
+        if (isset($this->checkedRow['state'])){
+            $relObject = new OfficeState();
+            $relObject->state = $this->checkedRow['state'];
+            $relObject->source = $this->source;
+            $relObject->source_row_id = $this->sourceRowId;
+            $relObject->matching_rate = $this->matching_rate;
+            $relObject->matched_by = $this->matched_by;
+            $this->office->states()->save($relObject);
         }
     }
 
@@ -476,6 +579,7 @@ class OfficeService extends BaseService
     	$this->addName();
     	$this->addCompanyName();
     	$this->addAddress();
+    	$this->addState();
         $this->addZip();
         $this->addPhone();
         $this->addMlsId();
@@ -501,10 +605,12 @@ class OfficeService extends BaseService
 
         	$this->checkedRow = $row;
             $this->sourceObjectId = $row['source_object']['source_object_id'];
+
         	$this->office = $this->match();
-        	   if (!$this->office->wasRecentlyCreated) {
+        	   if (!($this->office->wasRecentlyCreated)) {
                     $this->update();
             }
+
             return $this->office->id;
     }
 

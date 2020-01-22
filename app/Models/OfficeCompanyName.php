@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\Checkable;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
@@ -9,7 +10,7 @@ use Spatie\Sluggable\SlugOptions;
 class OfficeCompanyName extends Model
 {
     
-	use HasSlug;
+	use HasSlug, Checkable;
 	
     public function getSlugOptions() : SlugOptions
     {
