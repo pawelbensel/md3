@@ -87,15 +87,17 @@ class AgentService extends BaseService
         $email = $this->checkedRow['email'];
         $mls_id = array_key_exists('mls_id',$this->checkedRow)? $this->checkedRow['mls_id']: null;
         $office_mls_id = array_key_exists('office_mls_id',$this->checkedRow)? $this->checkedRow['office_mls_id']: null;
+        $license_number = array_key_exists('license_number',$this->checkedRow)? $this->checkedRow['license_number']: null;
         
         $this->log('Checking row: ');
         $this->log($this->checkedRow);
 
         $agent = null;
 
-        $this->matched_by = 'license_number';
-        $this->log('Try to get by '. $this->matched_by);
-        if(array_key_exists('license_number', $this->checkedRow)) {
+        
+        if($license_number) {
+            $this->matched_by = 'license_number';
+            $this->log('Try to get by '. $this->matched_by);
             $this->matching_rate = 100;
             $agent = Agent::where('license_number', '=', $this->checkedRow['license_number'])->first();
         }
