@@ -18,7 +18,9 @@ class RisCommmand extends Command
      * @var string
      */
     protected $signature = 'ris:parse {office_id? : Set scope of office id for the command }
-                                       {--all }';
+                                      {--offset= : Db offset to start }
+                                      {--limit= : DB Limit }
+                                      {--all }';
 
     /**
      * The console command description.
@@ -45,6 +47,14 @@ class RisCommmand extends Command
     public function handle()
     {
         $source = new RisSourceService();
+
+        if ($this->option('offset')) {
+            $source->setOffset((int)$this->option('offset'));
+        }
+
+        if ($this->option('limit')) {
+            $source->setLimit((int)$this->option('limit'));
+        }
 
         if($this->option('all')){
             while($source->getCounter()>$source->getSegmentMaxIndex())

@@ -16,7 +16,9 @@ class DrBillCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'drbill:parse {--all }';
+    protected $signature = 'drbill:parse {--all }
+                                        {--offset= : Db offset to start }
+                                        {--limit= : DB Limit }';
 
     /**
      * The console command description.
@@ -43,6 +45,14 @@ class DrBillCommand extends Command
     public function handle()
     {
         $source = new DrBillSourceService();
+        
+        if ($this->option('offset')) {
+            $source->setOffset((int)$this->option('offset'));
+        }
+
+        if ($this->option('limit')) {
+            $source->setLimit((int)$this->option('limit'));
+        }
 
         if($this->option('all')){
             while($source->getCounter()>$source->getSegmentMaxIndex())
