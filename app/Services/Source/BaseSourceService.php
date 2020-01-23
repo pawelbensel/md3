@@ -3,21 +3,22 @@
 namespace App\Services\Source;
 use App\Services\SourceRowService;
 use App\Services\SourceObjectService;
+use Illuminate\Database\Eloquent\Collection;
 
-class BaseSourceService
+class BaseSourceService implements SourceInterface
 {
-    
+
     protected $source;
     protected $mapArray;
-        
+
     protected $sourceRowService;
     protected $sourceObjectService;
 
     /**
      * set sources and set up source row and object services to get IDs from database
      *
-     * @var string     
-     */    
+     * @var string
+     */
     public function setSource(string $source)
     {
         $this->source = $source;
@@ -25,15 +26,10 @@ class BaseSourceService
         $this->sourceObjectService = new SourceObjectService($source);
     }
 
-    public function getSource()
-    {
-        return $this->source;
-    }
-
     /**
      * map row for the final aray structure base on mapArray variable
      *
-     * @var string     
+     * @var string
      */
 
     public function map($row){
@@ -41,11 +37,11 @@ class BaseSourceService
             $sourceData = [];
             foreach ($objectMap as $destinationName => $sourceName) {
                 if (isset($row->$sourceName) && ($row->$sourceName<>'')) {
-                    $returnArray[$objectType][$destinationName] = $row->$sourceName;                    
-                } else 
+                    $returnArray[$objectType][$destinationName] = $row->$sourceName;
+                } else
                     $returnArray[$objectType][$destinationName] = null;
             }
-            $so = $this->sourceObjectService->get($returnArray[$objectType], $objectType);    
+            $so = $this->sourceObjectService->get($returnArray[$objectType], $objectType);
             $sourceData['source_object_id'] = $so->id;
             $sourceData['parse_source_object'] = !$so->parsed;
             $returnArray[$objectType]['source_object'] = $sourceData;
@@ -61,4 +57,13 @@ class BaseSourceService
         return $returnArray;
     }
 
+    public function getNextData(): ?\Illuminate\Support\Collection
+    {
+        new Collection();
+    }
+
+    public function getSourceString(): string
+    {
+        return $this->source;
+    }
 }

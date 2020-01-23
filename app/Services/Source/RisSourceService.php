@@ -2,9 +2,11 @@
 
 namespace App\Services\Source;
 
+use Illuminate\Database\Eloquent\Collection;
+
 class RisSourceService extends BaseDBSourceService
 {
-    
+
     public function __construct()
     {
         $this->setSource('ris_media');
@@ -43,10 +45,11 @@ class RisSourceService extends BaseDBSourceService
 
     public function parseData()
     {
-        
-        foreach ($this->data as $row) {            
+
+        foreach ($this->data as $row) {
             $returnArray[] = $this->map($row);
         }
         return $returnArray;
     }
+
 }

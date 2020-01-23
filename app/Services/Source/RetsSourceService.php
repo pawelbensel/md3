@@ -8,21 +8,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Symfony\Component\Routing\Exception\InvalidParameterException;
 
-class RetsSourceService extends BaseDBSourceService
+class RetsSourceService extends BaseDBSourceService implements MultiTableInterface
 {
-    private $tables = ['agents', 'offices'];
-    private $org_id;
+    const SUPPORTED_TABLES = ['agents', 'offices'];
 
-
-    public function __construct(string $orgId, string $table)
+    public function __construct($table)
     {
-        if(!in_array($table,$this->tables)){
-            throw new InvalidParameterException('Invalid table parameter');
-        }
-        $this->org_id = $orgId;
-
         $this->setDBConnection('rets');
-        $this->setTableName($this->resolveTableName($orgId, $table));
+        $this->setTableName($this->resolveTableName($table));
         $this->setSource('rets_'.$this->tableName);
         $this->setMap();
     }
@@ -50,11 +43,6 @@ class RetsSourceService extends BaseDBSourceService
         ];
     }
 
-    public function getOrgId()
-    {
-        return $this->org_id;
-    }
-
     public function parseData()
     {
 
@@ -64,24 +52,20 @@ class RetsSourceService extends BaseDBSourceService
         return $returnArray;
     }
 
-    private function resolveTableName(string $orgId, string $table)
+    private function resolveTableName(string $table)
     {
-        $combinations = [
-            '_',    'mls_',
-            '_bo_', 'mls_bo_',
-            '_ds_', 'mls_ds_',
-            '_ftp_','mls_ftp_',
-            '_idx_','mls_idx_'
-
-        ];
-
-        foreach($combinations as $combination) {
-            $tableName = $orgId.$combination.$table;
-            if( Schema::connection($this->dbConnection)->hasTable($tableName)){
-                return $tableName;
+        $found = false;
+        foreach (self::SUPPORTED_TABLES as $supportedTable ) {
+            $found = (!$found && (strpos($table, $supportedTable) !== false) ) ? true : false;
+            if($found) {
+                break;
             }
         }
 
-        throw new \Exception('Coudnt find table for this org id');
+        if(!$found) {
+            throw new \Exception('Unsupported table');
+        }
+
+        return $table;
     }
 }

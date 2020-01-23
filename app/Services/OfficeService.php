@@ -33,7 +33,6 @@ class OfficeService extends BaseService
 
     public function __construct()
     {
-
     }
 
     private function cleanUp($string) {
@@ -283,7 +282,7 @@ class OfficeService extends BaseService
     private function updateName() {
     	$exist = false;
     	foreach ($this->office->names as $name) {
-    		
+
             if (
                 ($name->name == $this->checkedRow['office_name'])&&
                 ($name->source == $this->source)
@@ -613,6 +612,4 @@ class OfficeService extends BaseService
 
             return $this->office->id;
     }
-
-
 }

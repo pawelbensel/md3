@@ -1,16 +1,15 @@
 <?php
 
 namespace App\Services;
-use SourceRowService;
-use SourceObjectService;
+
+use App\Services\Source\SourceInterface;
 
 class BaseService {
 
 	protected $source;
-	protected $mapArray;
     protected $checkedRow;
 
-    public function setSource(string $source)
+    public function setSource(SourceInterface $source)
     {
         $this->source = $source;
     }
@@ -25,5 +24,5 @@ class BaseService {
         return $this->checkedRow['parse_object'];
     }
 
-} 
+}
 

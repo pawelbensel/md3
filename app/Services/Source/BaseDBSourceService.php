@@ -2,9 +2,10 @@
 
 namespace App\Services\Source;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-class BaseDBSourceService extends BaseSourceService
+class BaseDBSourceService extends BaseSourceService implements SourceInterface
 {
 
     protected $limit = 100;
@@ -59,4 +60,10 @@ class BaseDBSourceService extends BaseSourceService
         return $this->offset+$this->limit;
     }
 
+    public function getNextData(): ?Collection
+    {
+        $this->data = DB::connection($this->dbConnection)->table($this->tableName)->skip($this->offset)->take($this->limit)->get();
+        $this->offset += $this->limit;
+        return $this->data;
+    }
 }
