@@ -113,7 +113,7 @@ class AgentService extends BaseService
                 ->first();
         }
 
-        if(!$agent) {
+        if(!$agent && $email) {
             $this->matched_by = 'first_name, last_name, email';
             $this->setBaseBuilder($this->matched_by);
             $this->matching_rate = 100;
@@ -125,7 +125,7 @@ class AgentService extends BaseService
                 ->first();
         }
 
-        if(!$agent) {
+        if(!$agent && $email) {
             $this->matched_by = 'soundex first_name, soundex last_name, email';
             $this->setBaseBuilder('first_name, last_name, email');
             $this->matching_rate = 70;
