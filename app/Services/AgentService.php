@@ -148,7 +148,7 @@ class AgentService extends BaseService
                 ->first();
         }
 
-        if(null == $agent && null != $mls_id) {
+        if(null == $agent && null != $mls_id) { //add compare mls_name
             $this->matched_by = 'first_name, last_name, mls_id';
             $this->setBaseBuilder($this->matched_by);
             $this->matching_rate = 80;
@@ -156,7 +156,7 @@ class AgentService extends BaseService
             $agent = $this->queryBuilder->select('agents.id')
                 ->whereRaw('agent_first_names.first_name like \'%'.$firstName.'%\'')
                 ->whereRaw('agent_last_names.last_name like \'%'.$lastName.'%\'')
-                ->whereRaw('agent_mls_ids.mls_id like \'%'.$mls_id.'%\'')
+                ->whereRaw('agent_mls_ids.mls_id like \'%'.$mls_id.'%\' and agent_mls_ids.mls_name=\''.$this->mlsName;.'\')')                
                 ->first();
         }
 
@@ -168,7 +168,7 @@ class AgentService extends BaseService
             $agent = $this->queryBuilder->select('agents.id')
                 ->whereRaw("levenshtein_ratio('".\Str::slug($firstName,'')."', agent_first_names.slug) >80")
                 ->whereRaw("levenshtein_ratio('".\Str::slug($lastName,'')."', agent_last_names.slug) >80")
-                ->whereRaw('agent_mls_ids.mls_id like \'%'.$mls_id.'%\'')
+                ->whereRaw('agent_mls_ids.mls_id like \'%'.$mls_id.'%\' and agent_mls_ids.mls_name=\''.$this->mlsName;.'\')')
                 ->first();
         }
 

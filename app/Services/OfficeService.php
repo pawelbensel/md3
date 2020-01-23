@@ -303,6 +303,12 @@ class OfficeService extends BaseService
 
     private function updateCompanyName() {
     	$exist = false;
+        
+        if(!isset($this->checkedRow['company_name'])) {            
+            
+            return true;
+        }
+
     	foreach ($this->office->companyNames as $name) {
     		if  (
                 ($name->company_name == $this->checkedRow['company_name']) &&
@@ -319,6 +325,8 @@ class OfficeService extends BaseService
     	if (!$exist) {
     		$this->addCompanyName();
     	}
+        
+
     }
 
     private function updateAddress() {
@@ -344,6 +352,11 @@ class OfficeService extends BaseService
 
     private function updateMsaId() {
         $exist = false;
+        if(!isset($this->checkedRow['msa_id'])) {            
+            
+            return true;
+        }
+
         foreach ($this->office->msaIds as $msaId) {
             if (
                 ($msaId->msa_id == $this->checkedRow['msa_id']) &&
@@ -363,6 +376,11 @@ class OfficeService extends BaseService
 
     private function updateMlsId() {
         $exist = false;
+
+        if(!isset($this->checkedRow['mls_id'])) {                        
+            return true;
+        }
+
         foreach ($this->office->mlsIds as $mlsId) {
             if (
                 ($mlsId->mls_id == $this->checkedRow['mls_id']) &&
@@ -383,6 +401,11 @@ class OfficeService extends BaseService
 
     private function updatePhone() {
         $exist = false;
+
+        if(!isset($this->checkedRow['office_phone'])) {                        
+            return true;
+        }
+
         foreach ($this->office->phones as $phone) {
             if (
                 ($phone->phone == $this->checkedRow['office_phone'])&&
@@ -402,6 +425,10 @@ class OfficeService extends BaseService
     }
 
     private function updateZip() {
+        if(!isset($this->checkedRow['zip'])) {                        
+            return true;
+        }
+
         $exist = false;
         foreach ($this->office->zips as $zip) {
             if (
@@ -424,6 +451,11 @@ class OfficeService extends BaseService
     private function updateState() {
 
         $exist = false;
+
+        if(!isset($this->checkedRow['state'])) {
+            return true;
+        }
+
         foreach ($this->office->states as $state) {
             if (
                 ($state->state == $this->checkedRow['state'])&&
@@ -443,13 +475,13 @@ class OfficeService extends BaseService
     }
 
     private function update() {
-        $this->updateName();
-    	$this->updateCompanyName();
-    	$this->updateAddress();
-    	$this->updatePhone();
-    	$this->updateMsaId();
-    	$this->updateMlsId();
-    	$this->updateZip();
+        $this->updateName();        
+    	$this->updateCompanyName();        
+    	$this->updateAddress();        
+    	$this->updatePhone();        
+    	$this->updateMsaId();        
+    	$this->updateMlsId();        
+    	$this->updateZip();        
         $this->updateState();
     }
 
@@ -601,14 +633,14 @@ class OfficeService extends BaseService
 
     }
 
-    public function getId($row) {
-
+    public function getId($row) {            
         	$this->checkedRow = $row;
             $this->sourceObjectId = $row['source_object']['source_object_id'];
 
         	$this->office = $this->match();
-        	   if (!($this->office->wasRecentlyCreated)) {
-                    $this->update();
+            
+        	   if (!($this->office->wasRecentlyCreated)) {                
+                    $this->update();                    
             }
 
             return $this->office->id;
