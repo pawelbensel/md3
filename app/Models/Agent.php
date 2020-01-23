@@ -18,6 +18,11 @@ class Agent extends Model
         return $this->hasMany('App\Models\AgentLastName');
     }
 
+    public function licenseNumbers()
+    {
+        return $this->hasMany('App\Models\AgentLicenseNumber');
+    }
+
     public function emails()
     {
         return $this->hasMany('App\Models\AgentEmail');
@@ -47,4 +52,6 @@ class Agent extends Model
     {
         return $this->belongsToMany('App\Models\Office');
     }
+
+
 }
