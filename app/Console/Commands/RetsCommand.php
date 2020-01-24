@@ -13,6 +13,8 @@ class RetsCommand extends Command
 {
     protected $signature = 'rets:parse {org_id : Parse data for selected org_id } 
                                        {target : Parse agents or offices }
+                                       {--offset= : Db offset to start }
+                                       {--limit= : DB Limit }
                                        {--all }';
 
     protected $description = 'Parsing agents or offices from RETS database';
@@ -25,6 +27,14 @@ class RetsCommand extends Command
     public function handle()
     {
         $source = new RetsSourceService($this->argument('org_id'), $this->argument('target'));
+        
+        if ($this->option('offset')) {
+            $source->setOffset((int)$this->option('offset'));
+        }
+
+        if ($this->option('limit')) {
+            $source->setLimit((int)$this->option('limit'));
+        }
 
         if($this->option('all')){
             while($source->getCounter()>$source->getSegmentMaxIndex())

@@ -21,7 +21,7 @@ class QueryBuilderController extends Controller
 
     public function build(Request $request)
     {
-		
+		//dd($request->all());
     	$userQuery = $request->get('query');
     	$marker = $request->get('marker');
     	$queryBase = Agent::
@@ -56,7 +56,7 @@ class QueryBuilderController extends Controller
         		group_concat(distinct(office_emails.email)) as office_email, 
         		group_concat(distinct(office_phones.phone)) as office_phone,
         		group_concat(distinct(concat(office_addresses.address1,' ',office_addresses.address2,' ', office_addresses.city ))) as office_address,
-        		count(agent_office.agent_id) as number_of_agents
+        		count(distinct(agent_office.agent_id)) as number_of_agents
 
         		"));
 				
@@ -90,7 +90,7 @@ class QueryBuilderController extends Controller
 		  ]
 		}';
 
-		
+			
 		$this->queryGeneratorService->getAnswers($queryBase, $userQuery);
 		//dd($queryBase->toSql());
 		//dump($queryBase->get());
