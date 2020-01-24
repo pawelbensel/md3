@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Helpers\StringHelpers;
 use App\Models\Office;
 use App\Services\AgentService;
 use App\Services\OfficeService;
@@ -42,9 +43,17 @@ class ParseCommand extends Command
 
 
         if($source instanceof MultiTableInterface) {
-             while($data = $source->getNextData()) {
-                //TODO: For Multitable
-             }
+            $parseService  = ParseServiceFactory::factory($this->option('table'));
+            while($data = $source->getNextData()) {
+                foreach ($data as $row) {
+                    try {
+                        $parseService->setSourceRowId($row['source_row']['source_row_id']);
+                        $parseService->getId($row);
+                    } catch (\Exception $e) {
+                        Log::channel($this->argument('source'))->error('Could not parse data', (array) $e);
+                    }
+                }
+            }
         }else {
             while($data = $source->getNextData()) {
                 foreach ($data as $row){

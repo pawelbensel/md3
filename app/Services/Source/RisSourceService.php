@@ -45,7 +45,6 @@ class RisSourceService extends BaseDBSourceService
 
     public function parseData()
     {
-
         foreach ($this->data as $row) {
             $returnArray[] = $this->map($row);
         }

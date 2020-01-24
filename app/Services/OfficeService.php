@@ -20,7 +20,7 @@ use App\Models\OfficeZip;
 
 
 
-class OfficeService extends BaseService
+class OfficeService extends BaseService implements ParseServiceInterface
 {
 
     protected $office;
@@ -285,7 +285,7 @@ class OfficeService extends BaseService
 
             if (
                 ($name->name == $this->checkedRow['office_name'])&&
-                ($name->source == $this->source)
+                ($name->source == $this->source->getSourceString())
                 )
     		{
     			$exist = true;
@@ -305,7 +305,7 @@ class OfficeService extends BaseService
     	foreach ($this->office->companyNames as $name) {
     		if  (
                 ($name->company_name == $this->checkedRow['company_name']) &&
-                ($name->source == $this->source)
+                ($name->source == $this->source->getSourceString())
                 )
     		{
     			$exist = true;
@@ -327,7 +327,7 @@ class OfficeService extends BaseService
                 ($address->address1 == $this->checkedRow['address1']) &&
                 ($address->address2 == $this->checkedRow['address2']) &&
                 ($address->city == $this->checkedRow['city'])&&
-                ($address->source == $this->source))
+                ($address->source == $this->source->getSourceString()))
     		{
     			$exist = true;
                 //$address->addPassed();
@@ -346,7 +346,7 @@ class OfficeService extends BaseService
         foreach ($this->office->msaIds as $msaId) {
             if (
                 ($msaId->msa_id == $this->checkedRow['msa_id']) &&
-                ($msaId->source == $this->source))
+                ($msaId->source == $this->source->getSourceString()))
             {
                 $exist = true;
                 //$msaId->addPassed();
@@ -365,7 +365,7 @@ class OfficeService extends BaseService
         foreach ($this->office->mlsIds as $mlsId) {
             if (
                 ($mlsId->mls_id == $this->checkedRow['mls_id']) &&
-                ($mlsId->source == $this->source))
+                ($mlsId->source == $this->source->getSourceString()))
             {
                 $exist = true;
                 //$mlsId->addPassed();
@@ -379,13 +379,12 @@ class OfficeService extends BaseService
         }
     }
 
-
     private function updatePhone() {
         $exist = false;
         foreach ($this->office->phones as $phone) {
             if (
                 ($phone->phone == $this->checkedRow['office_phone'])&&
-                ($phone->source == $this->source)
+                ($phone->source == $this->source->getSourceString())
                )
             {
                 $exist = true;
@@ -405,7 +404,7 @@ class OfficeService extends BaseService
         foreach ($this->office->zips as $zip) {
             if (
                 ($zip->zip == $this->checkedRow['zip'])&&
-                ($zip->source == $this->source)
+                ($zip->source == $this->source->getSourceString())
             )
             {
                 $exist = true;
@@ -426,7 +425,7 @@ class OfficeService extends BaseService
         foreach ($this->office->states as $state) {
             if (
                 ($state->state == $this->checkedRow['state'])&&
-                ($state->source == $this->source)
+                ($state->source == $this->source->getSourceString())
             )
             {
                 $exist = true;
@@ -457,7 +456,7 @@ class OfficeService extends BaseService
     		$relObject = new OfficeMsaId;
     		$relObject->msa_id = $this->checkedRow['msa_id'];
             $relObject->source_row_id = $this->sourceRowId;
-    		$relObject->source = $this->source;
+    		$relObject->source = $this->source->getSourceString();
 
     		$this->office->msaIds()->save($relObject);
     	}
@@ -468,7 +467,7 @@ class OfficeService extends BaseService
     		$relObject = new OfficeName;
     		$relObject->name = $this->checkedRow['office_name'];
     		$relObject->source_row_id = $this->sourceRowId;
-    		$relObject->source = $this->source;
+    		$relObject->source = $this->source->getSourceString();
             $relObject->matching_rate = $this->matching_rate;
             $relObject->matched_by = $this->matched_by;
 
@@ -482,7 +481,7 @@ class OfficeService extends BaseService
     		$relObject = new OfficeCompanyName;
     		$relObject->company_name = $this->checkedRow['company_name'];
             $relObject->source_row_id = $this->sourceRowId;
-    		$relObject->source = $this->source;
+    		$relObject->source = $this->source->getSourceString();
             $relObject->matching_rate = $this->matching_rate;
             $relObject->matched_by = $this->matched_by;
 
@@ -495,7 +494,7 @@ class OfficeService extends BaseService
             $relObject = new OfficeMlsId();
             $relObject->mls_id = $this->checkedRow['mls_id'];
             $relObject->mls_name = $this->mlsName;
-            $relObject->source = $this->source;
+            $relObject->source = $this->source->getSourceString();
             $relObject->source_row_id = $this->sourceRowId;
             $relObject->matching_rate = $this->matching_rate;
             $relObject->matched_by = $this->matched_by;
@@ -508,7 +507,7 @@ class OfficeService extends BaseService
         if (isset($this->checkedRow['office_phone'])){
             $relObject = new OfficePhone;
             $relObject->phone = $this->checkedRow['office_phone'];
-            $relObject->source = $this->source;
+            $relObject->source = $this->source->getSourceString();
             $relObject->slug = StringHelpers::cleanupPhoneNumber($relObject->phone);
             $relObject->source_row_id = $this->sourceRowId;
             $relObject->matching_rate = $this->matching_rate;
@@ -523,7 +522,7 @@ class OfficeService extends BaseService
         if (isset($this->checkedRow['zip'])){
             $relObject = new OfficeZip;
             $relObject->zip = $this->checkedRow['zip'];
-            $relObject->source = $this->source;
+            $relObject->source = $this->source->getSourceString();
             $relObject->source_row_id = $this->sourceRowId;
             $relObject->matching_rate = $this->matching_rate;
             $relObject->matched_by = $this->matched_by;
@@ -536,7 +535,7 @@ class OfficeService extends BaseService
         if (isset($this->checkedRow['state'])){
             $relObject = new OfficeState();
             $relObject->state = $this->checkedRow['state'];
-            $relObject->source = $this->source;
+            $relObject->source = $this->source->getSourceString();
             $relObject->source_row_id = $this->sourceRowId;
             $relObject->matching_rate = $this->matching_rate;
             $relObject->matched_by = $this->matched_by;
@@ -561,7 +560,7 @@ class OfficeService extends BaseService
                 $relObject->city = $this->checkedRow['city'];
             }
 
-    		$relObject->source = $this->source;
+    		$relObject->source = $this->source->getSourceString();
             $relObject->source_row_id = $this->sourceRowId;
             $relObject->matching_rate = $this->matching_rate;
             $relObject->matched_by = $this->matched_by;
@@ -571,7 +570,7 @@ class OfficeService extends BaseService
 	}
 
     private function create() {
-    	$this->office = Office::create(['source' => $this->source]);
+    	$this->office = Office::create(['source' => $this->source->getSourceString()]);
         $this->matching_rate = 100;
         $this->matched_by = null;
     	$this->addMsaId();

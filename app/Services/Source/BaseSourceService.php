@@ -57,9 +57,9 @@ class BaseSourceService implements SourceInterface
         return $returnArray;
     }
 
-    public function getNextData(): ?\Illuminate\Support\Collection
+    public function getNextData(): ?array
     {
-        new Collection();
+        return [];
     }
 
     public function getSourceString(): string

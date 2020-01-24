@@ -30,7 +30,6 @@ class StringHelpers
 		if(!$string){
 		    return null;
         }
-	
 		if ((strlen($string)) > 10){
 			$arr[] = substr($string,-9);
 			$arr[] = substr($string,0,9);
@@ -44,6 +43,11 @@ class StringHelpers
         $search = array("'");
         $replace   = array("\'");
         return strtolower(str_replace($search, $replace, $string));
+    }
+
+    public static function contains(string $haystack, string $needle): bool
+    {
+        return strpos($haystack, $needle) !== null;
     }
 
 }

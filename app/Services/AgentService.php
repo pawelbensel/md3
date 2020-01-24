@@ -17,9 +17,8 @@ use App\Models\Office;
 use App\Models\OfficeMlsId;
 use Illuminate\Database\Query\Builder;
 
-class AgentService extends BaseService
+class AgentService extends BaseService implements ParseServiceInterface
 {
-
     /** @var Agent */
     protected $agent;
     protected $sourceObjectId;
@@ -58,7 +57,6 @@ class AgentService extends BaseService
         }
 
         return $this->agent->id;
-
     }
 
     public function match() {
@@ -179,7 +177,7 @@ class AgentService extends BaseService
         if (isset($this->checkedRow['first_name'])) {
             $relatedObject = new AgentFirstName();
             $relatedObject->first_name = $this->checkedRow['first_name'];
-            $relatedObject->source = $this->source;
+            $relatedObject->source = $this->source->getSourceString();
             $relatedObject->source_row_id = $this->sourceRowId;
             $relatedObject->matching_rate = $this->matching_rate;
             $relatedObject->matched_by = $this->matched_by;
@@ -191,7 +189,7 @@ class AgentService extends BaseService
         if (isset($this->checkedRow['last_name'])) {
             $relatedObject = new AgentLastName();
             $relatedObject->last_name = $this->checkedRow['last_name'];
-            $relatedObject->source = $this->source;
+            $relatedObject->source = $this->source->getSourceString();
             $relatedObject->source_row_id = $this->sourceRowId;
             $relatedObject->matching_rate = $this->matching_rate;
             $relatedObject->matched_by = $this->matched_by;
@@ -203,7 +201,7 @@ class AgentService extends BaseService
         if (isset($this->checkedRow['email'])) {
             $relatedObject = new AgentEmail();
             $relatedObject->email = $this->checkedRow['email'];
-            $relatedObject->source = $this->source;
+            $relatedObject->source = $this->source->getSourceString();
             $relatedObject->source_row_id = $this->sourceRowId;
             $relatedObject->matching_rate = $this->matching_rate;
             $relatedObject->matched_by = $this->matched_by;
@@ -215,7 +213,7 @@ class AgentService extends BaseService
         if (isset($this->checkedRow['type'])) {
             $relatedObject = new AgentType();
             $relatedObject->type = $this->checkedRow['type'];
-            $relatedObject->source = $this->source;
+            $relatedObject->source = $this->source->getSourceString();
             $relatedObject->source_row_id = $this->sourceRowId;
             $relatedObject->matching_rate = $this->matching_rate;
             $relatedObject->matched_by = $this->matched_by;
@@ -227,7 +225,7 @@ class AgentService extends BaseService
         if (isset($this->checkedRow['phone'])) {
             $relatedObject = new AgentPhone();
             $relatedObject->phone = $this->checkedRow['phone'];
-            $relatedObject->source = $this->source;
+            $relatedObject->source = $this->source->getSourceString();
             $relatedObject->source_row_id = $this->sourceRowId;
             $relatedObject->matching_rate = $this->matching_rate;
             $relatedObject->matched_by = $this->matched_by;
@@ -240,7 +238,7 @@ class AgentService extends BaseService
             $relatedObject = new AgentMlsId();
             $relatedObject->mls_id = $this->checkedRow['mls_id'];
             $relatedObject->mls_name = $this->mlsName;
-            $relatedObject->source = $this->source;
+            $relatedObject->source = $this->source->getSourceString();
             $relatedObject->source_row_id = $this->sourceRowId;
             $relatedObject->matching_rate = $this->matching_rate;
             $relatedObject->matched_by = $this->matched_by;
@@ -295,7 +293,10 @@ class AgentService extends BaseService
     {
         $exist = false;
         foreach ($this->agent->firstNames as $firstName) {
-            if ($firstName->first_name == $this->checkedRow['first_name'])
+            if (
+                ($firstName->first_name == $this->checkedRow['first_name'])&&
+                ($firstName->source == $this->source->getSourceString())
+            )
             {
                 $exist = true;
             }
@@ -310,7 +311,10 @@ class AgentService extends BaseService
     {
         $exist = false;
         foreach ($this->agent->lastNames as $lastName) {
-            if ($lastName->last_name == $this->checkedRow['last_name'])
+            if (
+                ($lastName->last_name == $this->checkedRow['last_name'])&&
+                ($lastName->last_name == $this->source->getSourceString())
+            )
             {
                 $exist = true;
             }
@@ -325,7 +329,10 @@ class AgentService extends BaseService
     {
         $exist = false;
         foreach ($this->agent->types as $type) {
-            if ($type->type == $this->checkedRow['type'])
+            if (
+                ($type->type == $this->checkedRow['type']) &&
+                ($type->source == $this->source->getSourceString())
+            )
             {
                 $exist = true;
             }
@@ -340,7 +347,10 @@ class AgentService extends BaseService
     {
         $exist = false;
         foreach ($this->agent->phones as $phone) {
-            if ($phone->phone == $this->checkedRow['phone'])
+            if (
+                ($phone->phone == $this->checkedRow['phone'])&&
+                ($phone->source == $this->source->getSourceString())
+            )
             {
                 $exist = true;
             }
@@ -355,7 +365,10 @@ class AgentService extends BaseService
     {
         $exist = false;
         foreach ($this->agent->emails as $email) {
-            if ($email->email == $this->checkedRow['email'])
+            if (
+                ($email->email == $this->checkedRow['email'])&&
+                ($email->source == $this->source->getSourceString())
+            )
             {
                 $exist = true;
             }
@@ -369,8 +382,11 @@ class AgentService extends BaseService
     private function updateMlsId()
     {
         $exist = false;
-        foreach ($this->agent->mlsIds as $msl_id) {
-            if ($msl_id->mls_id == $this->checkedRow['mls_id'])
+        foreach ($this->agent->mlsIds as $mlsId) {
+            if (
+                ($mlsId->mls_id == $this->checkedRow['mls_id'])&&
+                ($mlsId->source == $this->source->getSourceString())
+            )
             {
                 $exist = true;
             }
@@ -382,8 +398,7 @@ class AgentService extends BaseService
     }
 
     private function create() {
-        $this->agent = Agent::create(['source' => $this->source]);
-        $this->agent->fill(['source' => $this->source]);
+        $this->agent = Agent::create(['source' => $this->source->getSourceString()]);
         $this->matching_rate = 100;
         $this->matched_by = null;
         $this->addFirstName();
@@ -394,7 +409,6 @@ class AgentService extends BaseService
         $this->addPhone();
         $this->log('Adding the agent: '.$this->agent->firstNames()->first());
         $this->log($this->agent->id);
-
         // Set office for scoped searching
         if($this->officeIdScope) {
             $this->office = Office::find($this->officeIdScope);
@@ -407,7 +421,7 @@ class AgentService extends BaseService
         if (array_key_exists('office_mls_id', $this->checkedRow)) {
             $mlsId  = OfficeMlsId::where('mls_id','=',$this->checkedRow['office_mls_id'])->first();
             if($mlsId){
-                $this->log('Found with mls_id: '.$mlsId->mls_id);
+                $this->log('Office found with mls_id: '.$mlsId->mls_id);
                 $office =  $mlsId->office()->get()->first();
             }else {
                 $office = null;

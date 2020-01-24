@@ -36,14 +36,4 @@ class DrBillSourceService extends BaseDBSourceService
             'office_phone' => 'Office Phone',
         ];
     }
-
-    public function parseData()
-    {
-
-        foreach ($this->data as $row) {
-            $returnArray[] = $this->map($row);
-        }
-        return $returnArray;
-    }
-
 }

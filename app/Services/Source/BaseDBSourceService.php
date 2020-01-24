@@ -41,29 +41,15 @@ class BaseDBSourceService extends BaseSourceService implements SourceInterface
         return DB::connection($this->dbConnection)->table($table)->count();
     }
 
-    public function getData()
-    {
-        return $this->data = DB::connection($this->dbConnection)->table($this->tableName)->skip($this->offset)->take($this->limit)->get();
-    }
-
-    public function next()
-    {
-        $this->setOffset($this->offset + $this->limit);
-    }
-
-    public function getSegmentMaxIndex()
-    {
-        if($this->offset== 0){
-            return $this->limit;
-        }
-
-        return $this->offset+$this->limit;
-    }
-
-    public function getNextData(): ?Collection
+    public function getNextData(): ?array
     {
         $this->data = DB::connection($this->dbConnection)->table($this->tableName)->skip($this->offset)->take($this->limit)->get();
+
+        foreach ($this->data as $row) {
+            $returnArray[] = $this->map($row);
+        }
         $this->offset += $this->limit;
-        return $this->data;
+
+        return $returnArray;
     }
 }

@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 
 interface SourceInterface
 {
-    public function getNextData(): ?Collection;
+    public function getNextData(): ?array;
 
     public function getSourceString(): string;
 }
