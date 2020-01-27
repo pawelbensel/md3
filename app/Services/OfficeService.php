@@ -114,16 +114,16 @@ class OfficeService extends BaseService
         $officeQuery
                 ->select("offices.id");
         if(!empty($name)) {
-            $officeQuery->whereRaw("lower(office_names.name) = '$name'");
+            $officeQuery->whereRaw("office_names.name = '$name'");
         }
         if(!empty($address1)) {
-            $officeQuery->whereRaw("lower(office_addresses.address1) = '$address1'");
+            $officeQuery->whereRaw("office_addresses.address1 = '$address1'");
         }
         if(!empty($address2)){
-            $officeQuery->whereRaw("lower(office_addresses.address2) = '$address2'");
+            $officeQuery->whereRaw("office_addresses.address2 = '$address2'");
         }
         if(!empty($city)){
-            $officeQuery->whereRaw("lower(office_addresses.city) = '$city'");
+            $officeQuery->whereRaw("office_addresses.city = '$city'");
         }
         if(!empty($phone)){
             $officeQuery->whereRaw("office_phones.slug = '$phone'");
@@ -139,12 +139,12 @@ class OfficeService extends BaseService
 
             $officeQuery
                 ->select("offices.id")
-                ->whereRaw("lower(office_names.name) = '$name'")
-                ->whereRaw("lower(office_addresses.address1) = '$address1'")
-                ->whereRaw("lower(office_addresses.city) = '$city'");
+                ->whereRaw("office_names.name = '$name'")
+                ->whereRaw("office_addresses.address1 = '$address1'")
+                ->whereRaw("office_addresses.city = '$city'");
             if(!empty($address2))
             {
-                $officeQuery->whereRaw("lower(office_addresses.address2) = '$address2'");
+                $officeQuery->whereRaw("office_addresses.address2 = '$address2'");
             }
             $office = $officeQuery->first();
         }
@@ -157,8 +157,8 @@ class OfficeService extends BaseService
 
             $office = $officeQuery
                 ->select("offices.id")
-                ->whereRaw("lower(office_names.name) = '$name'")
-                ->whereRaw("lower(office_addresses.city) = '$city'")
+                ->whereRaw("office_names.name = '$name'")
+                ->whereRaw("office_addresses.city = '$city'")
                 ->whereRaw("office_phones.slug = '$phone'")
                 ->first();
         }
@@ -174,10 +174,10 @@ class OfficeService extends BaseService
                 ->select("offices.id")
                 ->whereRaw("office_names.slug = '$nameSlug'")
                 ->whereRaw("office_addresses.address1 like '$address1'")
-                ->whereRaw("lower(office_addresses.city) = '$city'");
+                ->whereRaw("office_addresses.city = '$city'");
             if(!empty($address2))
             {
-                $officeQuery->whereRaw("lower(office_addresses.address2) = '$address2'");
+                $officeQuery->whereRaw("office_addresses.address2 = '$address2'");
             }
 
             $office = $officeQuery->first();
@@ -193,7 +193,7 @@ class OfficeService extends BaseService
             $office = $officeQuery
                 ->select("offices.id")
                 ->whereRaw("office_names.slug = '$nameSlug'")
-                ->whereRaw("lower(office_addresses.city) = '$city'")
+                ->whereRaw("office_addresses.city = '$city'")
                 ->whereRaw("office_phones.slug = '$phone'")
                 ->first();
         }
@@ -208,10 +208,10 @@ class OfficeService extends BaseService
                 ->select("offices.id")
                 ->whereRaw("office_names.slug = '$cleanNameSlug'")
                 ->whereRaw("office_addresses.address1 like '$address1'")
-                ->whereRaw("lower(office_addresses.city) = '$city'");
+                ->whereRaw("office_addresses.city = '$city'");
             if(!empty($address2))
             {
-                $officeQuery->whereRaw("lower(office_addresses.address2) = '$address2'");
+                $officeQuery->whereRaw("office_addresses.address2 = '$address2'");
             }
 
             $office = $officeQuery->first();
@@ -226,7 +226,7 @@ class OfficeService extends BaseService
             $office = $officeQuery
                 ->select("offices.id")
                 ->whereRaw("office_names.slug = '$cleanNameSlug'")
-                ->whereRaw("lower(office_addresses.city) = '$city'")
+                ->whereRaw("office_addresses.city = '$city'")
                 ->whereRaw("office_phones.slug = '$phone'")
                 ->first();
         }
@@ -273,7 +273,7 @@ class OfficeService extends BaseService
             $office = $officeQuery
                 ->select("offices.id")
                 ->whereRaw("office_names.slug = '$cleanNameSlug'")
-                ->whereRaw("lower(office_addresses.city) = '$city'")
+                ->whereRaw("office_addresses.city = '$city'")
                 ->first();
         }
 
