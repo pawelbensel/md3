@@ -110,7 +110,7 @@ class AgentService extends BaseService
 
         if(!$agent){
             $agent = $this->queryBuilder->select('agents.id')
-                ->whereRaw('select .first_name like \'%'.$firstName.'%\'')
+                ->whereRaw('agent_first_names.first_name like \'%'.$firstName.'%\'')
                 ->whereRaw('agent_last_names.last_name like \'%'.$lastName.'%\'')
                 ->whereRaw('agent_emails.email = \''.$email.'\'')
                 ->whereRaw('agent_titles.title = \''.$title.'\'')
@@ -190,7 +190,7 @@ class AgentService extends BaseService
             $agent = $this->queryBuilder->select('agents.id')
                 ->whereRaw("levenshtein_ratio('".\Str::slug($firstName,'')."', agent_first_names.slug) >80")
                 ->whereRaw("levenshtein_ratio('".\Str::slug($lastName,'')."', agent_last_names.slug) >80")
-                ->whereRaw("agent_mls_ids.mls_id = '".$mls_id."' and agent_mls_ids.mls_name='".$this->mlsName."'")
+                ->whereRaw("agent_mls_ids.mls_id = '".$mls_id."%' and agent_mls_ids.mls_name='".$this->mlsName."'")
                 ->first();
         }
 
