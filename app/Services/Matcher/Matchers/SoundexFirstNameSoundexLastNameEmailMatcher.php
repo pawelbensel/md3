@@ -8,6 +8,7 @@ use App\Services\AgentService;
 use App\Services\Matcher\BaseMatcher;
 use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
 
 class SoundexFirstNameSoundexLastNameEmailMatcher extends BaseMatcher
 {
@@ -15,7 +16,7 @@ class SoundexFirstNameSoundexLastNameEmailMatcher extends BaseMatcher
     protected $rate = 60;
     protected $table = self::AGENT;
 
-    public function match(array $row): ?\stdClass
+    public function match(array $row): ?Model
     {
         if(!$this->isSatisfied($row)){
             return null;
@@ -30,7 +31,7 @@ class SoundexFirstNameSoundexLastNameEmailMatcher extends BaseMatcher
         return $agent;
     }
 
-    public function getMatchedBy()
+    public function getMatchedBy(): string
     {
         $matchedBy = $this->fields;
         $matchedBy[0] = 'soundex '.$matchedBy[0];

@@ -8,6 +8,7 @@ use App\Services\AgentService;
 use App\Services\Matcher\BaseMatcher;
 use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
 
 class FirstNameLastNameOfficeMlsIdMatcher extends BaseMatcher
 {
@@ -15,14 +16,14 @@ class FirstNameLastNameOfficeMlsIdMatcher extends BaseMatcher
     protected $rate = 90;
     protected $table = self::AGENT;
 
-    public function match(array $row): ?\stdClass
+    public function match(array $row): ?Model
     {
         if(!$this->isSatisfied($row)){
             return null;
         };
 
         $agent = $this->queryBuilder
-            ->leftJoin('agent_office','agent_office.agent_id','=','agent.id')
+            ->leftJoin('agent_office','agent_office.agent_id','=','agents.id')
             ->leftJoin('office_mls_ids','office_mls_ids.office_id','=','agent_office.office_id')
             ->whereRaw('agent_first_names.first_name like \'%'.$row['first_name'].'%\'')
             ->whereRaw('agent_last_names.last_name like \'%'.$row['last_name'].'%\'')
@@ -32,7 +33,7 @@ class FirstNameLastNameOfficeMlsIdMatcher extends BaseMatcher
         return $agent;
     }
 
-    public function getMatchedBy()
+    public function getMatchedBy(): string
     {
         return implode(', ', $this->fields).', office_id';
     }

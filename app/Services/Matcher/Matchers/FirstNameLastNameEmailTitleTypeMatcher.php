@@ -8,6 +8,7 @@ use App\Services\AgentService;
 use App\Services\Matcher\BaseMatcher;
 use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
 
 class FirstNameLastNameEmailTitleTypeMatcher extends BaseMatcher
 {
@@ -15,7 +16,7 @@ class FirstNameLastNameEmailTitleTypeMatcher extends BaseMatcher
     protected $rate = 100;
     protected $table = self::AGENT;
 
-    public function match(array $row): ?\stdClass
+    public function match(array $row): ?Model
     {
         if(!$this->isSatisfied($row)){
             return null;

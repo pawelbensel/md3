@@ -5,6 +5,7 @@ namespace App\Services\Matcher;
 
 
 use App\Models\Agent;
+use App\Models\Office;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 abstract class BaseMatcher implements MatcherInterface
 {
     /** @var Builder  */
-    protected $queryBuilder;
+    public $queryBuilder;
     protected $fields = [];
     protected $rate = 0;
     protected $table;
@@ -24,11 +25,15 @@ abstract class BaseMatcher implements MatcherInterface
 
     public function __construct()
     {
-        $this->queryBuilder = DB::connection()->table($this->table.'s')->select($this->table.'s.id');
+        switch($this->table) {
+            case self::AGENT: $this->queryBuilder = Agent::query()->select('agents.*'); break;
+            case self::OFFICE: $this->queryBuilder = Office::query()->select('offices.*'); break;
+            case self::PROPERTY: $this->queryBuilder = Office::query(); break;
+        }
         $this->setBaseBuilder();
     }
 
-    public function getMatchedBy()
+    public function getMatchedBy(): string
     {
         return implode(', ',$this->fields);
     }
@@ -42,7 +47,8 @@ abstract class BaseMatcher implements MatcherInterface
     {
         $fields = $this->fields;
         array_walk($fields, function(&$field) {
-            $field = $field.'s';
+            // if fields ends with s like adresses.
+            $field = (substr($field, -strlen('s')) === 's')? $field: $field.'s';
         });
 
         foreach ($fields as $field){
@@ -56,11 +62,18 @@ abstract class BaseMatcher implements MatcherInterface
     }
 
     protected function isSatisfied(array $row){
-        if(count($this->fields) > count(array_intersect($this->fields, array_keys($row)))){
+        $sameKeys = count(array_intersect($this->fields, array_keys($row)));
+        if(array_intersect(['city', 'address1', 'address2'], array_keys($row))){
+            $sameKeys += 1;
+        }
+        if(count($this->fields) > $sameKeys){
             return false;
         }
 
         foreach ($this->fields as $field) {
+            if($field == 'addresses'){
+                continue;
+            }
             if(!isset($row[$field]) || empty($row[$field])){
                 return false;
             }

@@ -4,10 +4,12 @@
 namespace App\Services\Matcher\Matchers;
 
 
+use App\Models\Agent;
 use App\Services\AgentService;
 use App\Services\Matcher\BaseMatcher;
 use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
 
 class FirstNameLastNameEmailMatcher extends BaseMatcher
 {
@@ -15,7 +17,7 @@ class FirstNameLastNameEmailMatcher extends BaseMatcher
     protected $rate = 100;
     protected $table = self::AGENT;
 
-    public function match(array $row): ?\stdClass
+    public function match(array $row): ?Model
     {
         if(!$this->isSatisfied($row)){
             return null;
@@ -27,6 +29,7 @@ class FirstNameLastNameEmailMatcher extends BaseMatcher
             ->whereRaw('agent_emails.email like \'%'.$row['email'].'%\'')
             ->whereRaw('agent_types.type like \'%'.$row['type'].'%\'')
             ->first();
+
 
         return $agent;
     }

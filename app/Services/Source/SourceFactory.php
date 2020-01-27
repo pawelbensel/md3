@@ -18,12 +18,17 @@ class SourceFactory
 
         $implementations = class_implements($className);
 
-
         if(isset($implementations[__NAMESPACE__.'\\'.'MultiTableInterface'])){
             if(!isset($options['table'])) {
                 throw new \InvalidArgumentException('--table option is required while multitable source choosen.');
             }
             $source = new $className($options['table']);
+            if(isset($implementations[__NAMESPACE__.'\\'.'MultiTableInterface'])){
+                if(!isset($options['mls'])){
+                    throw new \InvalidArgumentException('--mls_name option is required for this type of source.');
+                }
+                $source->setMlsName($options['mls']);
+            }
         } else {
             $source = new $className();
         }

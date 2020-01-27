@@ -29,30 +29,25 @@ class AgentService extends BaseService implements ParseServiceInterface
     protected $office;
     private  $officeIdScope;
     private $queryBuilder;
-    private $mlsName;
 
     public function __construct($officeIdScope = null)
     {
         $this->officeIdScope = $officeIdScope;
     }
 
-    public function setSourceRowId($sourceRowId) {
+    public function setSourceRowId($sourceRowId)
+    {
         $this->sourceRowId = $sourceRowId;
     }
 
-    public function setOffice(Office $office) {
+    public function setOffice(Office $office)
+    {
         $this->office = $office;
     }
 
-    public function setMlsName(string $mlsName)
+    public function getId($row)
     {
-        $this->mlsName = $mlsName;
-    }
-
-    public function getId($row) {
-
         $this->checkedRow = $row;
-
         $this->sourceObjectId = $row['source_object']['source_object_id'];
         $this->agent = $this->match();
         if (!$this->agent->wasRecentlyCreated) {
@@ -62,11 +57,12 @@ class AgentService extends BaseService implements ParseServiceInterface
         return $this->agent->id;
     }
 
-    public function match() {
+    public function match()
+    {
         $agent = $this->search();
 
         if (null != $agent){
-            $this->log('Agent found with id '.$agent->id);
+            $this->log('Agent found with id '.$agent->id. ' by '.$this->matched_by);
             return $agent;
         }
 
@@ -77,12 +73,8 @@ class AgentService extends BaseService implements ParseServiceInterface
 
     private function search()
     {
-        $this->log('Checking row: ');
-        $this->log($this->checkedRow);
-
         $agent = null;
         $row = $this->getPreparedRow();
-
         $files = File::allFiles( app_path('Services/Matcher/Matchers'));
         foreach($files as $file) {
             $class = '\\App\\Services\\Matcher\\Matchers\\'.$file->getBasename('.php');
@@ -91,9 +83,7 @@ class AgentService extends BaseService implements ParseServiceInterface
             if (!$matcher->supports($this)){
                 continue;
             }
-
             $agent = $matcher->match($row);
-
             if($agent) {
                 $this->matching_rate = $matcher->getRate();
                 $this->matched_by = $matcher->getMatchedBy();
@@ -109,11 +99,11 @@ class AgentService extends BaseService implements ParseServiceInterface
         $sqlArray['first_name'] = array_key_exists('first_name',$this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['first_name']): null;
         $sqlArray['last_name'] = array_key_exists('last_name',$this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['last_name']): null;
         $sqlArray['title'] = array_key_exists('title',$this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['title']) : null;
-        $sqlArray['type'] = array_key_exists('email', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['type']): null;
+        $sqlArray['type'] = array_key_exists('type', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['type']): null;
         $sqlArray['email'] = array_key_exists('email', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['email']): null;
         $sqlArray['mls_id'] = array_key_exists('mls_id',$this->checkedRow)? $this->checkedRow['mls_id']: null;
-        $sqlArray['office_mls_id'] = array_key_exists('office_mls_id',$this->checkedRow)? $this->checkedRow['office_mls_id']: null;
-        $sqlArray['title'] = array_key_exists('license_number',$this->checkedRow)? $this->checkedRow['license_number']: null;
+        $sqlArray['office_mls_id'] = array_key_exists('office_mls_id',$this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['office_mls_id']): null;
+        $sqlArray['license_number'] = array_key_exists('license_number',$this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['license_number']): null;
 
         return $sqlArray;
     }
@@ -182,7 +172,7 @@ class AgentService extends BaseService implements ParseServiceInterface
         if (isset($this->checkedRow['mls_id'])) {
             $relatedObject = new AgentMlsId();
             $relatedObject->mls_id = $this->checkedRow['mls_id'];
-            $relatedObject->mls_name = $this->mlsName;
+            $relatedObject->mls_name = $this->source->getMlsName();
             $relatedObject->source = $this->source->getSourceString();
             $relatedObject->source_row_id = $this->sourceRowId;
             $relatedObject->matching_rate = $this->matching_rate;
@@ -327,8 +317,7 @@ class AgentService extends BaseService implements ParseServiceInterface
         $this->addType();
         $this->addMlsId();
         $this->addPhone();
-        $this->log('Adding the agent: '.$this->agent->firstNames()->first());
-        $this->log($this->agent->id);
+        $this->log('Adding the agent: '.$this->agent->id);
         // Set office for scoped searching
         if($this->officeIdScope) {
             $this->office = Office::find($this->officeIdScope);
@@ -339,9 +328,9 @@ class AgentService extends BaseService implements ParseServiceInterface
         }
         // Set office from office public id. Option for RETS.
         if (array_key_exists('office_mls_id', $this->checkedRow)) {
-            $mlsId  = OfficeMlsId::where('mls_id','=',$this->checkedRow['office_mls_id'])->where('mls_name','=',$this->mlsName)->first();
+            $mlsId  = OfficeMlsId::where('mls_id','=',$this->checkedRow['office_mls_id'])->where('mls_name','=',$this->source->getMlsName())->first();
             if($mlsId){
-                $this->log('Office found with mls_id: '.$mlsId->mls_id);
+                $this->log('Office found for agent '.$this->agent->id.' with mls_id: '.$mlsId->mls_id);
                 $office =  $mlsId->office()->get()->first();
             }else {
                 $office = null;

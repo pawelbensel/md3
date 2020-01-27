@@ -8,13 +8,14 @@ use App\Services\AgentService;
 use App\Services\Matcher\BaseMatcher;
 use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
 
 class LicenseNumberMatcher extends BaseMatcher
 {
     protected $rate = 60;
     protected $table = self::AGENT;
 
-    public function match(array $row): ?\stdClass
+    public function match(array $row): ?Model
     {
         if(!array_key_exists('license_number', $row)){
             return null;
@@ -25,7 +26,7 @@ class LicenseNumberMatcher extends BaseMatcher
         return $agent;
     }
 
-    public function getMatchedBy()
+    public function getMatchedBy(): string
     {
         return 'license_number';
     }

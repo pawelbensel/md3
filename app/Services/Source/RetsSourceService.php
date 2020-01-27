@@ -8,9 +8,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Symfony\Component\Routing\Exception\InvalidParameterException;
 
-class RetsSourceService extends BaseDBSourceService implements MultiTableInterface
+class RetsSourceService extends BaseDBSourceService implements MultiTableInterface, MlsInterface
 {
     const SUPPORTED_TABLES = ['agents', 'offices'];
+    private  $mls_name;
 
     public function __construct($table)
     {
@@ -18,6 +19,15 @@ class RetsSourceService extends BaseDBSourceService implements MultiTableInterfa
         $this->setTableName($this->resolveTableName($table));
         $this->setSource('rets_'.$this->tableName);
         $this->setMap();
+    }
+
+    public function setMlsName(string $mls_name){
+        $this->mls_name = $mls_name;
+    }
+
+    public function getMlsName(): string
+    {
+        return $this->mls_name;
     }
 
     public function setMap() {
