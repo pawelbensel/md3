@@ -257,7 +257,7 @@ class OfficeService extends BaseService
 
                 $office = $officeQuery
                     ->select("offices.id")
-                    ->whereRaw("office_names.slug like '%$cleanNameSlug%'")
+                    ->whereRaw("office_names.slug like '$cleanNameSlug'")
                     ->whereRaw("office_phones.slug like '%$phone%'")
                     ->first();
             }
