@@ -15,7 +15,10 @@ use App\Models\AgentTitle;
 use App\Models\AgentType;
 use App\Models\Office;
 use App\Models\OfficeMlsId;
+use App\Services\Matcher\MatcherInterface;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\File;
+
 
 class AgentService extends BaseService implements ParseServiceInterface
 {
@@ -60,139 +63,59 @@ class AgentService extends BaseService implements ParseServiceInterface
     }
 
     public function match() {
-        $agent = $this->matchByAll();
+        $agent = $this->search();
 
         if (null != $agent){
             $this->log('Agent found with id '.$agent->id);
             return $agent;
         }
 
-
         $agent = $this->create();
 
         return $agent;
-
     }
 
-    private function matchByAll()
+    private function search()
     {
-        $firstName = StringHelpers::escapeLike($this->checkedRow['first_name']);
-        $lastName = StringHelpers::escapeLike($this->checkedRow['last_name']);
-        $title = (array_key_exists('title',$this->checkedRow))?
-            StringHelpers::escapeLike($this->checkedRow['title'])
-            :'';
-        $type = StringHelpers::escapeLike($this->checkedRow['type']);
-        $email = $this->checkedRow['email'];
-        $mls_id = array_key_exists('mls_id',$this->checkedRow)? $this->checkedRow['mls_id']: null;
-        $office_mls_id = array_key_exists('office_mls_id',$this->checkedRow)? $this->checkedRow['office_mls_id']: null;
-        $license_number = array_key_exists('license_number',$this->checkedRow)? $this->checkedRow['license_number']: null;
-        
         $this->log('Checking row: ');
         $this->log($this->checkedRow);
 
         $agent = null;
+        $row = $this->getPreparedRow();
 
-        
-        if($license_number) {
-            $this->matched_by = 'license_number';
-            $this->log('Try to get by '. $this->matched_by);
-            $this->matching_rate = 100;
-            $agent = Agent::where('license_number', '=', $this->checkedRow['license_number'])->first();
-        }
+        $files = File::allFiles( app_path('Services/Matcher/Matchers'));
+        foreach($files as $file) {
+            $class = '\\App\\Services\\Matcher\\Matchers\\'.$file->getBasename('.php');
+            /** @var MatcherInterface $matcher */
+            $matcher = new $class();
+            if (!$matcher->supports($this)){
+                continue;
+            }
 
+            $agent = $matcher->match($row);
 
-        $this->matched_by = 'first_name, last_name, email, title, type';
-        $this->setBaseBuilder($this->matched_by);
-        $this->matching_rate = 100;
-        $this->log('Try to get by '. $this->matched_by);
-
-        if(!$agent){
-            $agent = $this->queryBuilder->select('agents.id')
-                ->whereRaw('agent_first_names.first_name like \'%'.$firstName.'%\'')
-                ->whereRaw('agent_last_names.last_name like \'%'.$lastName.'%\'')
-                ->whereRaw('agent_emails.email like \'%'.$email.'%\'')
-                ->whereRaw('agent_titles.title like \'%'.$title.'%\'')
-                ->whereRaw('agent_types.type like \'%'.$type.'%\'')
-                ->first();
-        }
-
-        if(!$agent && $email) {
-            $this->matched_by = 'first_name, last_name, email';
-            $this->setBaseBuilder($this->matched_by);
-            $this->matching_rate = 100;
-            $this->log('Try to get by '. $this->matched_by);
-            $agent = $this->queryBuilder->select('agents.id')
-                ->whereRaw('agent_first_names.first_name like \'%'.$firstName.'%\'')
-                ->whereRaw('agent_last_names.last_name like \'%'.$lastName.'%\'')
-                ->whereRaw('agent_emails.email like \'%'.$email.'%\'')
-                ->first();
-        }
-
-        if(!$agent && $email) {
-            $this->matched_by = 'soundex first_name, soundex last_name, email';
-            $this->setBaseBuilder('first_name, last_name, email');
-            $this->matching_rate = 70;
-            $this->log('Try to get by '. $this->matched_by);
-            $agent = $this->queryBuilder->select('agents.id')
-                ->whereRaw("levenshtein_ratio('".\Str::slug($firstName,'')."', agent_first_names.slug) >80")
-                ->whereRaw("levenshtein_ratio('".\Str::slug($lastName,'')."', agent_last_names.slug) >80")
-                ->whereRaw('agent_emails.email like \'%'.$email.'%\'')
-                ->first();
-        }
-
-        if(null == $agent && null != $this->officeIdScope) {
-            $this->matched_by = 'first_name, last_name, office_id';
-            $this->setBaseBuilder('first_name, last_name');
-            $this->matching_rate = 90;
-            $this->log('Try to get by '. $this->matched_by);
-            $agent = $this->queryBuilder->select('agents.id')
-                ->leftJoin('agent_office on agent_office.agent_id=agent.id')
-                ->whereRaw('agent_first_names.first_name like \'%'.$firstName.'%\'')
-                ->whereRaw('agent_last_names.last_name like \'%'.$lastName.'%\'')
-                ->whereRaw('agent_office.office_id = '.(int)$this->officeIdScope.'')
-                ->first();
-        }
-
-        if(null == $agent && null != $mls_id) { //add compare mls_name
-            $this->matched_by = 'first_name, last_name, mls_id, mls_name';
-            $this->setBaseBuilder($this->matched_by);
-            $this->matching_rate = 80;
-            $this->log('Try to get by '. $this->matched_by);
-            $agent = $this->queryBuilder->select('agents.id')
-                ->whereRaw('agent_first_names.first_name like \'%'.$firstName.'%\'')
-                ->whereRaw('agent_last_names.last_name like \'%'.$lastName.'%\'')
-                ->whereRaw("agent_mls_ids.mls_id like '%".$mls_id."%' and agent_mls_ids.mls_name='".$this->mlsName."'")
-                ->first();
-        }
-
-        
-        if(null == $agent && null != $office_mls_id) {
-            $this->matched_by = 'first_name, last_name, office_id';
-            $this->setBaseBuilder('first_name, last_name');
-            $this->matching_rate = 90;
-            $this->log('Try to get by '. $this->matched_by);
-            $agent = $this->queryBuilder->select('agents.id')
-                ->leftJoin('agent_office','agent_office.agent_id','=','agent.id')
-                ->leftJoin('office_mls_ids','office_mls_ids.office_id','=','agent_office.office_id')
-                ->whereRaw('agent_first_names.first_name like \'%'.$firstName.'%\'')
-                ->whereRaw('agent_last_names.last_name like \'%'.$lastName.'%\'')
-                ->whereRaw("office_mls_ids.mls_id like '%".$mls_id."%' and agent_mls_ids.mls_name='".$this->mlsName."'")
-                ->first();
-        }
-
-        if(null == $agent && null != $mls_id) {
-            $this->matched_by = 'soundex first_name, soundex last_name, mls_id, mls_name';
-            $this->setBaseBuilder('first_name, last_name, mls_id');
-            $this->matching_rate = 70;
-            $this->log('Try to get by '. $this->matched_by);
-            $agent = $this->queryBuilder->select('agents.id')
-                ->whereRaw("levenshtein_ratio('".\Str::slug($firstName,'')."', agent_first_names.slug) >80")
-                ->whereRaw("levenshtein_ratio('".\Str::slug($lastName,'')."', agent_last_names.slug) >80")
-                ->whereRaw("agent_mls_ids.mls_id like '%".$mls_id."%' and agent_mls_ids.mls_name='".$this->mlsName."'")
-                ->first();
+            if($agent) {
+                $this->matching_rate = $matcher->getRate();
+                $this->matched_by = $matcher->getMatchedBy();
+                break;
+            }
         }
 
         return $agent;
+    }
+
+    private function getPreparedRow(): array
+    {
+        $sqlArray['first_name'] = array_key_exists('first_name',$this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['first_name']): null;
+        $sqlArray['last_name'] = array_key_exists('last_name',$this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['last_name']): null;
+        $sqlArray['title'] = array_key_exists('title',$this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['title']) : null;
+        $sqlArray['type'] = array_key_exists('email', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['type']): null;
+        $sqlArray['email'] = array_key_exists('email', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['email']): null;
+        $sqlArray['mls_id'] = array_key_exists('mls_id',$this->checkedRow)? $this->checkedRow['mls_id']: null;
+        $sqlArray['office_mls_id'] = array_key_exists('office_mls_id',$this->checkedRow)? $this->checkedRow['office_mls_id']: null;
+        $sqlArray['title'] = array_key_exists('license_number',$this->checkedRow)? $this->checkedRow['license_number']: null;
+
+        return $sqlArray;
     }
 
     private function addFirstName() {
@@ -266,31 +189,6 @@ class AgentService extends BaseService implements ParseServiceInterface
             $relatedObject->matched_by = $this->matched_by;
             $this->agent->mlsIds()->save($relatedObject);
         }
-    }
-
-    private function setBaseBuilder($usedFields)
-    {
-        $this->queryBuilder = ($this->officeIdScope != null)?
-            Agent::whereHas('offices', function($q){
-              $q->where('offices.id', $this->officeIdScope);
-            })
-            : Agent::query();
-
-        $matchedBy = explode(', ', $usedFields);
-        array_walk($matchedBy, function(&$singleMatch) {
-            $singleMatch = $singleMatch.'s';
-        });
-
-        foreach ($matchedBy as $singleMatch){
-            $this->queryBuilder =
-                $this->queryBuilder->leftJoin(
-                    'agent_'.$singleMatch,
-                    'agents.id',
-                    '=',
-                    'agent_'.$singleMatch.'.agent_id'
-                );
-        }
-
     }
 
     private function log($string){
