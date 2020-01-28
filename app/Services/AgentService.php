@@ -42,7 +42,7 @@ class AgentService extends BaseService implements ParseServiceInterface
         $this->sourceRowId = $sourceRowId;
     }
 
-    public function setOffice(Office $office)
+    public function setOffice(?Office $office)
     {
         $this->office = $office;
     }

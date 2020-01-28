@@ -20,7 +20,10 @@ class CleanSlugOffceNameShortPhoneMatcher extends BaseMatcher
             return null;
         };
 
-        if (!isset($row['clean_name_slug'])) {
+        if (!isset($row['clean_name_slug'])||
+            !isset($row['phone'])||
+            !isset($row['short_phone_numbers'])
+        ) {
             return null;
         }
 

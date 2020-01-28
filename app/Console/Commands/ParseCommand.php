@@ -65,7 +65,7 @@ class ParseCommand extends Command
         }else {
             while($data = $source->getNextData()) {
                 foreach ($data as $row){
-                    try {
+                    //try {
                         $this->officeService->setSourceRowId($row['source_row']['source_row_id']);
                         $officeId = $this->officeService->getId($row['office']);
                         $currentOffice = Office::find($officeId);
@@ -75,10 +75,10 @@ class ParseCommand extends Command
                         $this->agentService->getId($row['agent']);
 
 
-                    }catch (\Exception $e){
-                       echo 'Exception';
-                       Log::channel($this->argument('source'))->error('Could not parse data', (array) $e);
-                    }
+                    //}catch (\Exception $e){
+                    //   echo 'Exception';
+                    //   Log::channel($this->argument('source'))->error('Could not parse data', (array) $e);
+                    //}
                 }
                 if($this->option('debug')){
                     break;

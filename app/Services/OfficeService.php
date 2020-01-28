@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Helpers\StringHelpers;
 use App\Services\Matcher\MatcherInterface;
+use App\Services\Matcher\Matchers\ZCityPhoneMatcher;
 use App\Services\Source\RetsSourceService;
 use Illuminate\Support\Facades\DB;
 
@@ -75,7 +76,7 @@ class OfficeService extends BaseService implements ParseServiceInterface
         $sqlArray['address1'] = array_key_exists('address1', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['address1']): null;
         $sqlArray['address2'] = array_key_exists('address2', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['address2']): null;
         $sqlArray['city'] = array_key_exists('city',$this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['city']): null;
-        $sqlArray['phone'] = array_key_exists('phone',$this->checkedRow)? StringHelpers::cleanupPhoneNumber($this->checkedRow['office_phone']): null;
+        $sqlArray['phone'] = array_key_exists('office_phone',$this->checkedRow)? StringHelpers::cleanupPhoneNumber($this->checkedRow['office_phone']): null;
         $sqlArray['short_phone_numbers'] = (isset($sqlArray['phone']))? StringHelpers::shortPhoneNumber($sqlArray['phone']): null;
 
         if($this->source instanceof RetsSourceService){
@@ -434,6 +435,13 @@ class OfficeService extends BaseService implements ParseServiceInterface
             return $office;
         }
 
+        //Do not create Offices with empty office_name and coudnt find by city phone
+        if(empty($this->checkedRow['office_name']) && !isset($this->matched_by)){
+            dd($this->checkedRow);
+            $this->log('Unable to find office and due to missing requirements for row office wont be added.');
+            return null;
+        }
+
     	$office = $this->create();
 
     	return $office;
@@ -444,6 +452,10 @@ class OfficeService extends BaseService implements ParseServiceInterface
         $this->checkedRow = $row;
         $this->sourceObjectId = $row['source_object']['source_object_id'];
         $this->office = $this->match();
+
+        if(!$this->office){
+            return null;
+        }
 
         if (!($this->office->wasRecentlyCreated)) {
                 $this->update();
