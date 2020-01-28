@@ -25,7 +25,7 @@ class CleanSlugOffceNameShortPhoneMatcher extends BaseMatcher
         }
 
         $this->queryBuilder
-            ->whereRaw('lower(office_names.slug) = \'' . $row['clean_name_slug'] . '\'')
+            ->whereRaw('office_names.slug = \'' . $row['clean_name_slug'] . '\'')
             ->whereRaw('office_phones.slug = \'' . $row['phone'] . '\'');
 
         foreach ($row['short_phone_numbers'] as $shortNumber)

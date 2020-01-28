@@ -24,7 +24,7 @@ class CleanSlugOfficeNamePhone extends BaseMatcher
         }
 
         $office = $this->queryBuilder
-            ->whereRaw('lower(office_names.slug) = \'' . $row['clean_name_slug'] . '\'')
+            ->whereRaw('office_names.slug = \'' . $row['clean_name_slug'] . '\'')
             ->whereRaw('office_phones.slug = \'' . $row['phone'] . '\'')
             ->first();
 

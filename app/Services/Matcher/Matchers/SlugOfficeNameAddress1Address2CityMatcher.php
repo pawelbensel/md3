@@ -27,10 +27,10 @@ class SlugOfficeNameAddress1Address2CityMatcher extends BaseMatcher
         }
 
         $office = $this->queryBuilder
-            ->whereRaw('lower(office_names.slug) = \''.$row['name_slug'].'\'')
-            ->whereRaw('lower(office_addresses.address1) = \''.$row['address1'].'\'')
-            ->whereRaw('lower(office_addresses.address2) = \''.$row['address2'].'\'')
-            ->whereRaw('lower(office_addresses.city) = \''.$row['city'].'\'')
+            ->whereRaw('office_names.slug = \''.$row['name_slug'].'\'')
+            ->whereRaw('office_addresses.address1 = \''.$row['address1'].'\'')
+            ->whereRaw('office_addresses.address2 = \''.$row['address2'].'\'')
+            ->whereRaw('office_addresses.city = \''.$row['city'].'\'')
             ->first();
 
         return $office;

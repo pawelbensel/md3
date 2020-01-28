@@ -25,9 +25,9 @@ class OfficeNameAddress1CityMatcher extends BaseMatcher
         }
 
         $office = $this->queryBuilder
-            ->whereRaw('lower(office_names.name) = \''.$row['name'].'\'')
-            ->whereRaw('lower(office_addresses.address1) = \''.$row['address1'].'\'')
-            ->whereRaw('lower(office_addresses.city) = \''.$row['city'].'\'')
+            ->whereRaw('office_names.name = \''.$row['name'].'\'')
+            ->whereRaw('office_addresses.address1 = \''.$row['address1'].'\'')
+            ->whereRaw('office_addresses.city = \''.$row['city'].'\'')
             ->first();
 
         return $office;
