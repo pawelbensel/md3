@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Agent extends Model
 {
-    protected $fillable = ['source', 'license_number'];
+    protected $fillable = ['source'];
 
     public function firstNames()
     {
@@ -26,6 +26,11 @@ class Agent extends Model
     public function mlsIds()
     {
         return $this->hasMany('App\Models\AgentMlsId');
+    }
+
+    public function licenseNumbers()
+    {
+        return $this->hasMany('App\Models\AgentLicenseNumber');
     }
 
     public function phones()

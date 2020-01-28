@@ -9,6 +9,7 @@ use App\Models\Agent;
 use App\Models\AgentEmail;
 use App\Models\AgentFirstName;
 use App\Models\AgentLastName;
+use App\Models\AgentLicenseNumber;
 use App\Models\AgentMlsId;
 use App\Models\AgentPhone;
 use App\Models\AgentTitle;
@@ -90,7 +91,6 @@ class AgentService extends BaseService implements ParseServiceInterface
                 $this->matched_by = $matcher->getMatchedBy();
                 break;
             }
-
         }
 
         return $agent;
@@ -150,6 +150,18 @@ class AgentService extends BaseService implements ParseServiceInterface
         }
     }
 
+    private function addLicenseNumber() {
+        if (isset($this->checkedRow['license_number'])) {
+            $relatedObject = new AgentLicenseNumber();
+            $relatedObject->license_number = $this->checkedRow['license_number'];
+            $relatedObject->source = $this->source->getSourceString();
+            $relatedObject->source_row_id = $this->sourceRowId;
+            $relatedObject->matching_rate = $this->matching_rate;
+            $relatedObject->matched_by = $this->matched_by;
+            $this->agent->licenseNumbers()->save($relatedObject);
+        }
+    }
+
     private function addType() {
         if (isset($this->checkedRow['type'])) {
             $relatedObject = new AgentType();
@@ -199,6 +211,7 @@ class AgentService extends BaseService implements ParseServiceInterface
     private function update() {
         $this->updateFirstName();
         $this->updateLastName();
+        $this->updateLicenseNumbers();
         $this->updateType();
         $this->updatePhone();
         $this->updateEmail();
@@ -238,6 +251,24 @@ class AgentService extends BaseService implements ParseServiceInterface
 
         if (!$exist) {
             $this->addLastName();
+        }
+    }
+
+    private function updateLicenseNumbers()
+    {
+        $exist = false;
+        foreach ($this->agent->licenseNumbers as $licenseNumber) {
+            if (
+                ($licenseNumber->type == $this->checkedRow['license_number']) &&
+                ($licenseNumber->source == $this->source->getSourceString())
+            )
+            {
+                $exist = true;
+            }
+        }
+
+        if (!$exist) {
+            $this->addLicenseNumber();
         }
     }
 
@@ -320,6 +351,7 @@ class AgentService extends BaseService implements ParseServiceInterface
         $this->addFirstName();
         $this->addLastName();
         $this->addEmail();
+        $this->addLicenseNumber();
         $this->addType();
         $this->addMlsId();
         $this->addPhone();
