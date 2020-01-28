@@ -17,7 +17,7 @@ class LicenseNumberMatcher extends BaseMatcher
 
     public function match(array $row): ?Model
     {
-        if(!array_key_exists('license_number', $row)){
+        if(!array_key_exists('license_number', $row) || empty($row['license_number'])){
             return null;
         }
         $agent = $this->queryBuilder

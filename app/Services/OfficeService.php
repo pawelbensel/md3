@@ -134,7 +134,7 @@ class OfficeService extends BaseService implements ParseServiceInterface
     	foreach ($this->office->addresses as $address) {
     		if (
                 ($address->address1 == $this->checkedRow['address1']) &&
-                ($address->address2 == $this->checkedRow['address2']) &&
+                ($address->address2 == (array_key_exists('address2', $this->checkedRow)?$this->checkedRow['address2']: null)) &&
                 ($address->city == $this->checkedRow['city'])&&
                 ($address->source == $this->source->getSourceString()))
     		{

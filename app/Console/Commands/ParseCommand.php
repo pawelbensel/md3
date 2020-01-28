@@ -23,6 +23,8 @@ class ParseCommand extends Command
 
     protected $description = 'Parsing data from choosen datasource to MegaData Database';
 
+    private $map = [ AgentService::class => 'agent', OfficeService::class => 'office'];
+
     public function __construct(OfficeService $officeService, AgentService $agentService)
     {
         parent::__construct();
@@ -44,11 +46,12 @@ class ParseCommand extends Command
 
         if($source instanceof MultiTableInterface) {
             $parseService  = ParseServiceFactory::factory($this->option('table'));
+            $parseService->setSource($source);
             while($data = $source->getNextData()) {
                 foreach ($data as $row) {
                     try {
                         $parseService->setSourceRowId($row['source_row']['source_row_id']);
-                        $parseService->getId($row);
+                        $parseService->getId($row[$this->map[get_class($parseService)]]);
                     } catch (\Exception $e) {
                         Log::channel($this->argument('source'))->error('Could not parse data', (array) $e);
                     }
