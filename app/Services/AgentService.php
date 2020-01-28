@@ -16,6 +16,7 @@ use App\Models\AgentType;
 use App\Models\Office;
 use App\Models\OfficeMlsId;
 use App\Services\Matcher\MatcherInterface;
+use App\Services\Source\RetsSourceService;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\File;
 
@@ -75,20 +76,22 @@ class AgentService extends BaseService implements ParseServiceInterface
     {
         $agent = null;
         $row = $this->getPreparedRow();
-        $files = File::allFiles( app_path('Services/Matcher/Matchers'));
-        foreach($files as $file) {
-            $class = '\\App\\Services\\Matcher\\Matchers\\'.$file->getBasename('.php');
+        $files = File::allFiles(app_path('Services/Matcher/Matchers'));
+        foreach ($files as $file) {
+            $class = '\\App\\Services\\Matcher\\Matchers\\' . $file->getBasename('.php');
             /** @var MatcherInterface $matcher */
             $matcher = new $class();
-            if (!$matcher->supports($this)){
+            if (!$matcher->supports($this)) {
                 continue;
             }
             $agent = $matcher->match($row);
-            if($agent) {
+            if ($agent) {
                 $this->matching_rate = $matcher->getRate();
                 $this->matched_by = $matcher->getMatchedBy();
                 break;
             }
+
+        }
 
         return $agent;
     }
@@ -103,6 +106,10 @@ class AgentService extends BaseService implements ParseServiceInterface
         $sqlArray['mls_id'] = array_key_exists('mls_id',$this->checkedRow)? $this->checkedRow['mls_id']: null;
         $sqlArray['office_mls_id'] = array_key_exists('office_mls_id',$this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['office_mls_id']): null;
         $sqlArray['license_number'] = array_key_exists('license_number',$this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['license_number']): null;
+
+        if($this->source instanceof RetsSourceService){
+            $sqlArray['mls_name'] = $this->source->getMlsName();
+        }
 
         return $sqlArray;
     }
