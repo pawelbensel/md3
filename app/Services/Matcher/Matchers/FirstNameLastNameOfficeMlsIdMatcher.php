@@ -18,9 +18,13 @@ class FirstNameLastNameOfficeMlsIdMatcher extends BaseMatcher
 
     public function match(array $row): ?Model
     {
-        if(!$this->isSatisfied($row)){
+        if(!isset($row['first_name'])||
+            !isset($row['last_name'])||
+            !isset($row['office_mls_id'])||
+            !isset($row['mls_name']))
+        {
             return null;
-        };
+        }
 
         $agent = $this->queryBuilder
             ->leftJoin('agent_office','agent_office.agent_id','=','agents.id')
@@ -28,6 +32,7 @@ class FirstNameLastNameOfficeMlsIdMatcher extends BaseMatcher
             ->whereRaw('agent_first_names.first_name like \'%'.$row['first_name'].'%\'')
             ->whereRaw('agent_last_names.last_name like \'%'.$row['last_name'].'%\'')
             ->whereRaw("office_mls_ids.mls_id like '%".$row['office_mls_id']."%'")
+            ->whereRaw("office_mls_ids.mls_id like '%".$row['office_mls_id']."%' and agent_mls_ids.mls_name='".$row['mls_name']."'")
             ->first();
 
         return $agent;

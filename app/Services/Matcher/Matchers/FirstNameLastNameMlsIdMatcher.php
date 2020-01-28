@@ -18,14 +18,19 @@ class FirstNameLastNameMlsIdMatcher extends BaseMatcher
 
     public function match(array $row): ?Model
     {
-        if(!$this->isSatisfied($row)){
+        if(!isset($row['first_name'])||
+            !isset($row['last_name'])||
+            !isset($row['mls_id'])||
+            !isset($row['mls_name']))
+        {
             return null;
-        };
+        }
 
         $agent = $this->queryBuilder
             ->whereRaw('agent_first_names.first_name like \'%'.$row['first_name'].'%\'')
             ->whereRaw('agent_last_names.last_name like \'%'.$row['last_name'].'%\'')
             ->whereRaw("agent_mls_ids.mls_id like '%".$row['mls_id']."%'")
+            ->whereRaw("agent_mls_ids.mls_id like '%".$row['mls_id']."%' and agent_mls_ids.mls_name='".$row['mls_name']."'")
             ->first();
 
         return $agent;

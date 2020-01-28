@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Helpers\StringHelpers;
 use App\Services\Matcher\MatcherInterface;
+use App\Services\Source\RetsSourceService;
 use Illuminate\Support\Facades\DB;
 
 use App\Models\Office;
@@ -76,6 +77,10 @@ class OfficeService extends BaseService implements ParseServiceInterface
         $sqlArray['city'] = array_key_exists('city',$this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['city']): null;
         $sqlArray['phone'] = array_key_exists('phone',$this->checkedRow)? StringHelpers::cleanupPhoneNumber($this->checkedRow['office_phone']): null;
         $sqlArray['short_phone_numbers'] = (isset($sqlArray['phone']))? StringHelpers::shortPhoneNumber($sqlArray['phone']): null;
+
+        if($this->source instanceof RetsSourceService){
+            $sqlArray['mls_name'] = $this->source->getMlsName();
+        }
 
         return $sqlArray;
     }
