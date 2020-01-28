@@ -18,8 +18,10 @@ class ParseCommand extends Command
     private $officeService;
 
     protected $signature = 'parse { source : Type data source. }
-                                   { --mls= : Type mls org_id }
-                                   { --table= : Choose table to parse. (agents/offices/properties) } ';
+                                   { --table= : Choose table to parse. (agents/offices/properties) } 
+                                    {--offset= : Source offset to skip }
+                                    {--limit= : Source limit to parse }
+                                    {--debug : Stops commands after reaching the limit }';
 
     protected $description = 'Parsing data from choosen datasource to MegaData Database';
 
@@ -56,6 +58,9 @@ class ParseCommand extends Command
                         Log::channel($this->argument('source'))->error('Could not parse data', (array) $e);
                     }
                 }
+                if($this->option('debug')){
+                    break;
+                }
             }
         }else {
             while($data = $source->getNextData()) {
@@ -74,6 +79,9 @@ class ParseCommand extends Command
                        echo 'Exception';
                        Log::channel($this->argument('source'))->error('Could not parse data', (array) $e);
                     }
+                }
+                if($this->option('debug')){
+                    break;
                 }
             }
         }

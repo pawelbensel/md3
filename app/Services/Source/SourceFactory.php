@@ -27,6 +27,14 @@ class SourceFactory
             $source = new $className();
         }
 
+        if (isset($options['offset'])) {
+            $source->setOffset((int)$options['offset']);
+        }
+
+        if (isset($options['limit'])) {
+            $source->setLimit((int)$options['limit']);
+        }
+
         return $source;
     }
 
