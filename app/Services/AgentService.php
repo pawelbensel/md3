@@ -89,7 +89,6 @@ class AgentService extends BaseService implements ParseServiceInterface
                 $this->matched_by = $matcher->getMatchedBy();
                 break;
             }
-        }
 
         return $agent;
     }
