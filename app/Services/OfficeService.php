@@ -437,8 +437,7 @@ class OfficeService extends BaseService implements ParseServiceInterface
 
         //Do not create Offices with empty office_name and coudnt find by city phone
         if(empty($this->checkedRow['office_name']) && !isset($this->matched_by)){
-            dd($this->checkedRow);
-            $this->log('Unable to find office and due to missing requirements for row office wont be added.');
+            $this->log('Unable to find office. Office will NOT be added and due to missing requirements for row.');
             return null;
         }
 
