@@ -55,12 +55,12 @@ class OfficeService extends BaseService implements ParseServiceInterface
                 continue;
             }
             $office = $matcher->match($row);
-
             if($office) {
                 $this->matching_rate = $matcher->getRate();
                 $this->matched_by = $matcher->getMatchedBy();
                 break;
             }
+
         }
 
         return $office;
