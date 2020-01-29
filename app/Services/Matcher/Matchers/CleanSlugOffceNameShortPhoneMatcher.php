@@ -16,6 +16,8 @@ class CleanSlugOffceNameShortPhoneMatcher extends BaseMatcher
 
     public function match(array $row): ?Model
     {
+        $tmpSql = '';
+
         if (!$this->isSatisfied($row)) {
             return null;
         };
@@ -28,14 +30,20 @@ class CleanSlugOffceNameShortPhoneMatcher extends BaseMatcher
         }
 
         $this->queryBuilder
-            ->whereRaw('office_names.slug = \'' . $row['clean_name_slug'] . '\'')
-            ->whereRaw('office_phones.slug = \'' . $row['phone'] . '\'');
+            ->whereRaw('office_names.slug = \'' . $row['clean_name_slug'] . '\'');            
+
 
         foreach ($row['short_phone_numbers'] as $shortNumber)
         {
-            $this->queryBuilder->orWhereRaw("office_phones.slug like '%$shortNumber%'");
+            if ($tmpSql <> '') {
+                $tmpSql . " OR";
+            }
+                $tmpSql .= " office_phones.slug like '%$shortNumber%' ";
+            
         }
-
+        $this->queryBuilder
+             ->whereRaw("(".$tmpSql.")");
+        
         $office = $this->queryBuilder->first();
 
         return $office;
