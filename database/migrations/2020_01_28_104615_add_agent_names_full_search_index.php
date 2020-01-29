@@ -16,9 +16,7 @@ class AddAgentNamesFullSearchIndex extends Migration
         DB::statement('ALTER TABLE agent_first_names ADD FULLTEXT agent_first_names_first_name_fulltext_index (`first_name`)');
         DB::statement('ALTER TABLE agent_first_names ADD FULLTEXT agent_first_names_slug_fulltext_index (`slug`)');
         DB::statement('ALTER TABLE agent_last_names ADD FULLTEXT agent_last_names_last_name_fulltext_index (`last_name`)');
-        DB::statement('ALTER TABLE agent_last_names ADD  FULLTEXT agent_last_names_slug_fulltext_index (`slug`)');
-        DB::statement('ALTER TABLE office_phones ADD FULLTEXT office_phones_phone_fulltext_index (`phone`)');
-        DB::statement('ALTER TABLE office_phones ADD FULLTEXT office_phones_slug_fulltext_index (`slug`)');
+        DB::statement('ALTER TABLE agent_last_names ADD  FULLTEXT agent_last_names_slug_fulltext_index (`slug`)');        
         
     }
 
@@ -29,6 +27,9 @@ class AddAgentNamesFullSearchIndex extends Migration
      */
     public function down()
     {
-        //
+        DB::statement('DROP INDEX agent_first_names_first_name_fulltext_index on agent_first_names ');
+        DB::statement('DROP INDEX agent_first_names_slug_fulltext_index on agent_first_names ');
+        DB::statement('DROP INDEX agent_last_names_last_name_fulltext_index on agent_last_names');
+        DB::statement('DROP INDEX agent_last_names_slug_fulltext_index on agent_last_names');        
     }
 }
