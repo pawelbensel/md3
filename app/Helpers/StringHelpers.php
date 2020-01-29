@@ -6,6 +6,10 @@ use Illuminate\Support\Str;
 
 class StringHelpers
 {
+    private static $cleanups = [
+        'inc'
+    ];
+
 	public static function slug(?string $string) {
 		if(!$string) {
 		    return null;
@@ -30,7 +34,6 @@ class StringHelpers
 		if(!$string){
 		    return null;
         }
-	
 		if ((strlen($string)) > 10){
 			$arr[] = substr($string,-9);
 			$arr[] = substr($string,0,9);
@@ -44,6 +47,18 @@ class StringHelpers
         $search = array("'");
         $replace   = array("\'");
         return strtolower(str_replace($search, $replace, $string));
+    }
+
+    public static function contains(string $haystack, string $needle): bool
+    {
+        return strpos($haystack, $needle) !== false;
+    }
+
+    public static function cleanupSlug(string $string): string {
+            foreach (self::$cleanups as $clean) {
+                $string = str_replace($clean,'', $string);
+            }
+            return $string;
     }
 
 }

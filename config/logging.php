@@ -61,7 +61,6 @@ return [
             'emoji' => ':boom:',
             'level' => 'critical',
         ],
-
         'papertrail' => [
             'driver' => 'monolog',
             'level' => 'debug',
@@ -71,7 +70,7 @@ return [
                 'port' => env('PAPERTRAIL_PORT'),
             ],
         ],
-        'drbill' => [
+        'dr_bill' => [
             'driver' => 'single',
             'path' => storage_path('errors/drbill/erros.log'),
         ],

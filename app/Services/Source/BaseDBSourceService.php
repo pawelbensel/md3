@@ -2,9 +2,10 @@
 
 namespace App\Services\Source;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-class BaseDBSourceService extends BaseSourceService
+class BaseDBSourceService extends BaseSourceService implements SourceInterface
 {
 
     protected $limit = 100;
@@ -40,23 +41,15 @@ class BaseDBSourceService extends BaseSourceService
         return DB::connection($this->dbConnection)->table($table)->count();
     }
 
-    public function getData()
+    public function getNextData(): ?array
     {
-        return $this->data = DB::connection($this->dbConnection)->table($this->tableName)->skip($this->offset)->take($this->limit)->get();
-    }
+        $this->data = DB::connection($this->dbConnection)->table($this->tableName)->skip($this->offset)->take($this->limit)->get();
 
-    public function next()
-    {
-        $this->setOffset($this->offset + $this->limit);
-    }
-
-    public function getSegmentMaxIndex()
-    {
-        if($this->offset== 0){
-            return $this->limit;
+        foreach ($this->data as $row) {
+            $returnArray[] = $this->map($row);
         }
+        $this->offset += $this->limit;
 
-        return $this->offset+$this->limit;
+        return $returnArray;
     }
-
 }
