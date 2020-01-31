@@ -28,9 +28,8 @@ class FirstNameLastNameMlsIdMatcher extends BaseMatcher
 
         $agent = $this->queryBuilder
             ->whereRaw('agent_first_names.first_name like \'%'.$row['first_name'].'%\'')
-            ->whereRaw('agent_last_names.last_name like \'%'.$row['last_name'].'%\'')
-            ->whereRaw("agent_mls_ids.mls_id like '%".$row['mls_id']."%'")
-            ->whereRaw("agent_mls_ids.mls_id like '%".$row['mls_id']."%' and agent_mls_ids.mls_name='".$row['mls_name']."'")
+            ->whereRaw('agent_last_names.last_name like \'%'.$row['last_name'].'%\'')            
+            ->whereRaw("agent_mls_ids.mls_id = '".$row['mls_id']."' and agent_mls_ids.mls_name='".$row['mls_name']."'")
             ->first();
 
         return $agent;

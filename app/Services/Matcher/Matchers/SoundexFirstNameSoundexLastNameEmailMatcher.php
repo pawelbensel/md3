@@ -25,7 +25,7 @@ class SoundexFirstNameSoundexLastNameEmailMatcher extends BaseMatcher
         $agent = $this->queryBuilder
             ->whereRaw("levenshtein_ratio('".\Str::slug($row['first_name'],'')."', agent_first_names.slug) >80")
             ->whereRaw("levenshtein_ratio('".\Str::slug($row['last_name'],'')."', agent_last_names.slug) >80")
-            ->whereRaw('agent_emails.email like \'%'.$row['email'].'%\'')
+            ->whereRaw('agent_emails.email = \''.$row['email'].'\'')
             ->first();
 
         return $agent;

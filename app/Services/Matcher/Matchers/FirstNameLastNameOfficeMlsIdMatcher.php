@@ -12,7 +12,7 @@ use Illuminate\Database\Query\Builder;
 
 class FirstNameLastNameOfficeMlsIdMatcher extends BaseMatcher
 {
-    protected $fields = ['first_name', 'last_name'];
+    protected $fields = ['first_name', 'last_name', 'office_mls_id'];
     protected $rate = 90;
     protected $table = self::AGENT;
 
@@ -30,9 +30,8 @@ class FirstNameLastNameOfficeMlsIdMatcher extends BaseMatcher
             ->leftJoin('agent_office','agent_office.agent_id','=','agents.id')
             ->leftJoin('office_mls_ids','office_mls_ids.office_id','=','agent_office.office_id')
             ->whereRaw('agent_first_names.first_name like \'%'.$row['first_name'].'%\'')
-            ->whereRaw('agent_last_names.last_name like \'%'.$row['last_name'].'%\'')
-            ->whereRaw("office_mls_ids.mls_id like '%".$row['office_mls_id']."%'")
-            ->whereRaw("office_mls_ids.mls_id like '%".$row['office_mls_id']."%' and office_mls_ids.mls_name ='".$row['mls_name']."'")
+            ->whereRaw('agent_last_names.last_name like \'%'.$row['last_name'].'%\'')            
+            ->whereRaw("office_mls_ids.mls_id = '".$row['office_mls_id']."' and office_mls_ids.mls_name ='".$row['mls_name']."'")
             ->first();
 
         return $agent;
