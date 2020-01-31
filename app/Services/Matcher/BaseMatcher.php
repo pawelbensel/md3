@@ -6,6 +6,7 @@ namespace App\Services\Matcher;
 
 use App\Models\Agent;
 use App\Models\Office;
+use App\Models\Prop;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,7 @@ abstract class BaseMatcher implements MatcherInterface
 
     protected const AGENT = 'agent';
     protected const OFFICE = 'office';
-    protected const PROPERTY = 'property';
+    protected const PROPERTY = 'prop';
 
 
     public function __construct()
@@ -28,7 +29,7 @@ abstract class BaseMatcher implements MatcherInterface
         switch($this->table) {
             case self::AGENT: $this->queryBuilder = Agent::query()->select('agents.*'); break;
             case self::OFFICE: $this->queryBuilder = Office::query()->select('offices.*'); break;
-            case self::PROPERTY: $this->queryBuilder = Office::query(); break;
+            case self::PROPERTY: $this->queryBuilder = Prop::query()->select('props.*'); break;
         }
         $this->setBaseBuilder();
     }

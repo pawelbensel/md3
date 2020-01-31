@@ -8,6 +8,11 @@ class Office extends Model
 {
     protected $fillable = ['source'];
 
+    public function props()
+    {
+        return $this->belongsToMany(Prop::class);
+    }
+
     public function names()
     {
         return $this->hasMany('App\Models\OfficeName');
@@ -17,7 +22,7 @@ class Office extends Model
     {
         return $this->hasMany('App\Models\OfficeMsaId');
     }
- 
+
     public function addresses()
     {
         return $this->hasMany('App\Models\OfficeAddress');
@@ -44,7 +49,7 @@ class Office extends Model
 
     public function agents()
     {
-        return $this->belongsToMany('App\Models\Agent');
+        return $this->belongsToMany('App\Models\Agent')->withTimestamps();
     }
 
     public function mlsIds()

@@ -7,6 +7,7 @@ use App\Models\Office;
 use App\Services\AgentService;
 use App\Services\OfficeService;
 use App\Services\ParseServiceFactory;
+use App\Services\PropertyService;
 use App\Services\Source\MultiTableInterface;
 use App\Services\Source\SourceFactory;
 use Illuminate\Console\Command;
@@ -25,7 +26,11 @@ class ParseCommand extends Command
 
     protected $description = 'Parsing data from choosen datasource to MegaData Database';
 
-    private $map = [ AgentService::class => 'agent', OfficeService::class => 'office'];
+    private $map = [
+        AgentService::class => 'agent',
+        OfficeService::class => 'office',
+        PropertyService::class => 'prop'
+    ];
 
     public function __construct(OfficeService $officeService, AgentService $agentService)
     {
@@ -51,6 +56,7 @@ class ParseCommand extends Command
             $parseService->setSource($source);
             while($data = $source->getNextData()) {
                 foreach ($data as $row) {
+
                     try {
                         $parseService->setSourceRowId($row['source_row']['source_row_id']);
                         $parseService->getId($row[$this->map[get_class($parseService)]]);

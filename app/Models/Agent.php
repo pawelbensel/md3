@@ -50,6 +50,11 @@ class Agent extends Model
 
     public function offices()
     {
-        return $this->belongsToMany('App\Models\Office');
+        return $this->belongsToMany('App\Models\Office')->withTimestamps();
+    }
+
+    public function props()
+    {
+        return $this->belongsToMany(Prop::class);
     }
 }
