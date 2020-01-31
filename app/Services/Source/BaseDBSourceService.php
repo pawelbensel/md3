@@ -43,6 +43,8 @@ class BaseDBSourceService extends BaseSourceService implements SourceInterface
 
     public function getNextData(): ?array
     {
+        $returnArray = array();
+
         $this->data = DB::connection($this->dbConnection)->table($this->tableName)->skip($this->offset)->take($this->limit)->get();
 
         foreach ($this->data as $row) {
