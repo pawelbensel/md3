@@ -32,6 +32,16 @@ class Office extends Model
         return $this->hasMany('App\Models\OfficeCompanyName');
     }
 
+    public function emails()
+    {
+        return $this->hasMany('App\Models\OfficeEmail');
+    }
+
+    public function websites()
+    {
+        return $this->hasMany('App\Models\OfficeWebsite');
+    }
+
     public function phones()
     {
         return $this->hasMany('App\Models\OfficePhone');
