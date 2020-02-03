@@ -26,7 +26,7 @@ class LicenseNumberMatcher extends BaseMatcher
         }
 
         $agent = $this->queryBuilder
-            ->whereRaw('agent_license_numbers.license_number = '. $row['license_number'])
+            ->whereRaw('agent_license_numbers.license_number = \''. $row['license_number'].'\'')
             ->first();
 
         return $agent;
