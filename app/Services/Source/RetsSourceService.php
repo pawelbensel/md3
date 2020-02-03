@@ -56,6 +56,8 @@ class RetsSourceService extends BaseDBSourceService implements MultiTableInterfa
                 'zip' => 'of_zip',
                 'office_phone' => 'of_phone',
                 'mls_id' => 'of_public_id',
+                'office_email' => 'of_email',
+                'office_website' => 'of_website',
             ];
         }
 
