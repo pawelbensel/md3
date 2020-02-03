@@ -12,7 +12,7 @@ use Illuminate\Database\Query\Builder;
 
 class FirstNameLastNameOfficeMlsIdMatcher extends BaseMatcher
 {
-    protected $fields = ['first_name', 'last_name', 'office_mls_id'];
+    protected $fields = ['first_name', 'last_name'];
     protected $rate = 90;
     protected $table = self::AGENT;
 
