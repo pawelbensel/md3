@@ -90,7 +90,7 @@ class Prop extends Model
 
     public function squareFeets()
     {
-        return$this->hasMany(PropSquareFeet::class);
+        return $this->hasMany(PropSquareFeet::class);
     }
 
     public function statuses()

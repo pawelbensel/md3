@@ -6,11 +6,13 @@ namespace App\Services;
 use App\Helpers\StringHelpers;
 use App\Models\Agent;
 use App\Models\AgentMlsId;
+use App\Models\KeyValue;
 use App\Models\OfficeMlsId;
 use App\Models\Prop;
 use App\Models\PropAddress;
 use App\Models\PropAgentMlsId;
 use App\Models\PropBasement;
+use App\Models\PropDescription;
 use App\Models\PropGarage;
 use App\Models\PropMlsId;
 use App\Models\PropMlsOfficeId;
@@ -32,6 +34,7 @@ use App\Models\PropZip;
 use App\Services\Matcher\MatcherInterface;
 use App\Services\Source\RetsSourceService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
@@ -99,7 +102,6 @@ class PropertyService extends BaseService implements ParseServiceInterface
 
     private function create()
     {
-
         $this->property = Prop::create(['source' => $this->source->getSourceString()]);
         $this->matching_rate = 100;
         $this->matched_by = null;
@@ -116,15 +118,17 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->addAddress();
         $this->addStatus();
         $this->addSoldPrice();
-        $this->updateSquareFeet();
+        $this->addSquareFeet();
         $this->addPrice();
         $this->addPictureUrl();
         $this->addOnMarket();
+        $this->addDescription();
         $this->addMlsId();
         $this->addMlsPrivateNumber();
         $this->addMlsOfficeId();
         $this->addPrimaryMlsAgent();
         $this->addCoMlsAgent();
+        $this->addKeyValues();
 
         echo 'Adding the property: '.$this->property->id.PHP_EOL;
 
@@ -169,12 +173,15 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->updateSoldPrice();
         $this->updateSquareFeet();
         $this->updatePrice();
+        $this->updateDescription();
         $this->updatePictureUrl();
         $this->updateOnMarket();
+        $this->updateMlsId();
         $this->updateMlsPrivateNumber();
         $this->updateMlsOfficeId();
         $this->updateCoAgent();
         $this->updatePrimaryAgent();
+        $this->updateKeyValues();
     }
 
     private function addZip() {
@@ -186,6 +193,18 @@ class PropertyService extends BaseService implements ParseServiceInterface
             $relatedObject->matching_rate = $this->matching_rate;
             $relatedObject->matched_by = $this->matched_by;
             $this->property->zips()->save($relatedObject);
+        }
+    }
+
+    private function addDescription() {
+        if (isset($this->checkedRow['description'])) {
+            $relatedObject = new PropDescription();
+            $relatedObject->description = $this->checkedRow['description'];
+            $relatedObject->source = $this->source->getSourceString();
+            $relatedObject->source_row_id = $this->sourceRowId;
+            $relatedObject->matching_rate = $this->matching_rate;
+            $relatedObject->matched_by = $this->matched_by;
+            $this->property->descriptions()->save($relatedObject);
         }
     }
 
@@ -352,6 +371,40 @@ class PropertyService extends BaseService implements ParseServiceInterface
         }
     }
 
+    private function addKeyValues() {
+        $keyValuesToInsert = [];
+        $now = date('Y-m-d H:i:s');
+        if (isset($this->checkedRow['keyvalue']) &&
+            count($this->checkedRow['keyvalue']) > 0 ) {
+            foreach ($this->checkedRow['keyvalue'] as $key => $value) {
+                array_push($keyValuesToInsert,
+                    [
+                        'key' => $key,
+                        'value' => $value,
+                        'source' => $this->source->getSourceString(),
+                        'owner_id' => $this->property->id,
+                        'owner_type' => get_class($this->property),
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+                //$keyVal->owner()->associate($this->property)->save();
+            }
+
+            KeyValue::insert($keyValuesToInsert);
+        }
+    }
+
+    private function addKeyValue(string $key, string $value) {
+        if (isset($key) && isset($value)) {
+            $keyVal = new KeyValue();
+            $keyVal->key = $key;
+            $keyVal->value = $value;
+            $keyVal->source = $this->source->getSourceString();
+
+            $keyVal->owner()->associate($this->property)->save();
+        }
+    }
+
     private function addSoldPrice() {
         if (isset($this->checkedRow['sold_price'])) {
             $relatedObject = new PropSoldPrice();
@@ -495,6 +548,24 @@ class PropertyService extends BaseService implements ParseServiceInterface
 
         if (!$exist) {
             $this->addZip();
+        }
+    }
+
+    private function updateDescription()
+    {
+        $exist = false;
+        foreach ($this->property->descriptions as $description) {
+            if (
+                ($description->description == $this->checkedRow['description'])&&
+                ($description->source == $this->source->getSourceString())
+            )
+            {
+                $exist = true;
+            }
+        }
+
+        if (!$exist) {
+            $this->addDescription();
         }
     }
 
@@ -794,6 +865,37 @@ class PropertyService extends BaseService implements ParseServiceInterface
         }
     }
 
+    private function updateKeyValues()
+    {
+        /** @var Collection $propertyKeyValues */
+        $propertyKeyValues = $this->property->keyValues;
+        if (isset($this->checkedRow['keyvalue']) &&
+            count($this->checkedRow['keyvalue']) > 0 ) {
+            $now = date('Y-m-d H:i:s');
+            $keyValuesToInsert = [];
+            foreach($this->checkedRow['keyvalue'] as $key => $value) {
+                $exist = $propertyKeyValues
+                    ->where('key', $key)
+                    ->where('value', $value)
+                    ->where('source', $this->source->getSourceString())
+                    ->first();
+                if(!$exist){
+                    array_push($keyValuesToInsert,
+                        [
+                            'key' => $key,
+                            'value' => $value,
+                            'source' => $this->source->getSourceString(),
+                            'owner_id' => $this->property->id,
+                            'owner_type' => get_class($this->property),
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ]);
+                }
+            }
+            KeyValue::insert($keyValuesToInsert);
+        }
+    }
+
     private function updateMlsPrivateNumber()
     {
         $exist = false;
@@ -891,12 +993,6 @@ class PropertyService extends BaseService implements ParseServiceInterface
         }
     }
 
-
-
-
-
-
-
     /*private function addAttribute(string $attributeName, array $params = [])
     {
 
@@ -967,7 +1063,8 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $sqlArray['total_diningroom'] = array_key_exists('total_diningroom', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['total_diningroom']): null;
         $sqlArray['total_bed_room'] = array_key_exists('total_bed_room', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['total_bed_room']): null;
         $sqlArray['basement'] = array_key_exists('basement', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['basement']): null;
-        $sqlArray['square_feet '] = array_key_exists('square_feet', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['square_feet']): null;
+        $sqlArray['square_feet'] = array_key_exists('square_feet', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['square_feet']): null;
+        $sqlArray['description'] = array_key_exists('description', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['description']): null;
 
         $sqlArray['street_unit'] = array_key_exists('street_unit', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['street_unit']): null;
         $sqlArray['street_suffix'] = array_key_exists('street_suffix', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['street_suffix']): null;
