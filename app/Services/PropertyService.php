@@ -46,6 +46,7 @@ class PropertyService extends BaseService implements ParseServiceInterface
     protected $property;
     protected $sourceObjectId;
     protected $sourceRowId;
+    private $matching_rate;
 
     public function getId($row)
     {
