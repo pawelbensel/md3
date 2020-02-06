@@ -22,7 +22,8 @@ class ParseCommand extends Command
                                    { --table= : Choose table to parse. (agents/offices/properties) } 
                                     {--offset= : Source offset to skip }
                                     {--limit= : Source limit to parse }
-                                    {--debug : Stops commands after reaching the limit }';
+                                    {--debug : Stops commands after reaching the limit }
+                                    {--update : Update only last changes } ';
 
     protected $description = 'Parsing data from choosen datasource to MegaData Database';
 

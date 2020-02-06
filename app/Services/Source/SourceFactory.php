@@ -35,6 +35,10 @@ class SourceFactory
             $source->setLimit((int)$options['limit']);
         }
 
+        if (isset($options['update'])) {
+            $source->setUpdate($options['update']);
+        }
+
         return $source;
     }
 

@@ -2,18 +2,25 @@
 
 namespace App\Services\Source;
 
+use App\LastUpdate;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class BaseDBSourceService extends BaseSourceService implements SourceInterface
 {
-
     protected $limit = 100;
     protected $offset = 0;
     protected $tableName;
     protected $dbConnection;
-    protected $tableCounter = null;
     protected $data;
+    protected $update;
+    protected $lastUpdateAt;
+
+    public function setUpdate(bool $update)
+    {
+        $this->update = $update;
+    }
 
     public function setOffset(int $offset)
     {
@@ -44,8 +51,24 @@ class BaseDBSourceService extends BaseSourceService implements SourceInterface
     public function getNextData(): ?array
     {
         $returnArray = array();
+        $this->lastUpdateAt = LastUpdate::query()->firstWhere(['source' => $this->source]);
 
-        $this->data = DB::connection($this->dbConnection)->table($this->tableName)->skip($this->offset)->take($this->limit)->get();
+        $queryBuilder = DB::connection($this->dbConnection)->table($this->tableName)->skip($this->offset)->take($this->limit);
+
+        if($this instanceof RetsSourceService){
+            $queryBuilder->orderByRaw('IFNULL(updtime,timestamp) ASC');
+            if($this->update && $this->lastUpdateAt){
+                $queryBuilder->whereRaw('IFNULL(updtime,timestamp) >= :last_update', ['last_update'=> $this->lastUpdateAt->value('lastUpdateAt')]);
+            }
+        }
+        $this->data = $queryBuilder->get();
+
+        if($this instanceof RetsSourceService) {
+            $updateDateTime = $this->getSegmentUpdateTime();
+            if($updateDateTime > (isset($this->lastUpdateAt->lastUpdateAt)?$this->lastUpdateAt->lastUpdateAt:null)){
+                $this->lastUpdateAt = LastUpdate::updateOrCreate(['source' => $this->source], ['source' => $this->source, 'lastUpdateAt' => $updateDateTime]);
+            }
+        }
 
         foreach ($this->data as $row) {
             $returnArray[] = $this->map($row);
@@ -53,5 +76,14 @@ class BaseDBSourceService extends BaseSourceService implements SourceInterface
         $this->offset += $this->limit;
 
         return $returnArray;
+    }
+
+    private function getSegmentUpdateTime()
+    {
+        $updateDateTime =$this->data->first(function($value, $key){
+            return $key == 'updtime' && $value != null || $key == 'timestamp' && $value != null;
+        });
+
+        return isset($updateDateTime->updtime)?$updateDateTime->updtime:isset($updateDateTime->timestamp)?$updateDateTime->timestamp:null;
     }
 }
