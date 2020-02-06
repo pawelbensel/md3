@@ -9,7 +9,7 @@ use App\Services\OfficeService;
 use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
 
-class SlugOfficeNameAddress1Address2CityMatcher extends BaseMatcher
+class O005_SlugOfficeNameAddress1Address2CityMatcher extends BaseMatcher
 {
     protected $fields = ['name', 'addresses'];
     protected $rate = 95;

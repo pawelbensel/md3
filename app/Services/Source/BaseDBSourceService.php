@@ -2,6 +2,7 @@
 
 namespace App\Services\Source;
 
+use App\Models\LastUpdate;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 

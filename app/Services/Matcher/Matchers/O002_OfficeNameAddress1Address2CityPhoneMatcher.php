@@ -9,7 +9,7 @@ use App\Services\OfficeService;
 use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
 
-class OfficeNameAddress1Address2CityPhoneMatcher extends BaseMatcher
+class O002_OfficeNameAddress1Address2CityPhoneMatcher extends BaseMatcher
 {
     protected $fields = ['name', 'addresses', 'phone'];
     protected $rate = 100;
