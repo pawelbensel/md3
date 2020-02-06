@@ -31,7 +31,8 @@ class OfficeService extends BaseService implements ParseServiceInterface
     protected $sourceObjectId;
     protected $sourceRowId;
     protected $matching_rate;
-    
+    protected $matched_by;
+
     public function __construct()
     {
     }

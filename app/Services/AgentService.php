@@ -33,6 +33,7 @@ class AgentService extends BaseService implements ParseServiceInterface
     private  $officeIdScope;
     private $queryBuilder;
     private $matching_rate;
+    protected $matched_by;
 
     public function __construct($officeIdScope = null)
     {
