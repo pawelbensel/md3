@@ -9,7 +9,7 @@ use App\Services\Matcher\BaseMatcher;
 use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
 
-class LicenseNumberLastNameMatcher extends BaseMatcher
+class A003_LicenseNumberLastNameMatcher extends BaseMatcher
 {
     protected $fields = ['license_number', 'last_name'];
     protected $rate = 100;

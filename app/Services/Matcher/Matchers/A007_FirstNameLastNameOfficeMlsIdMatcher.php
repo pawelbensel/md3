@@ -10,7 +10,7 @@ use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 
-class FirstNameLastNameOfficeMlsIdMatcher extends BaseMatcher
+class A007_FirstNameLastNameOfficeMlsIdMatcher extends BaseMatcher
 {
     protected $fields = ['first_name', 'last_name'];
     protected $rate = 90;

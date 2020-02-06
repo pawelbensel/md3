@@ -18,6 +18,11 @@ class Agent extends Model
         return $this->hasMany('App\Models\AgentLastName');
     }
 
+    public function similar()
+    {
+        return $this->morphMany(Similar::class, 'similar');
+    }
+
     public function emails()
     {
         return $this->hasMany('App\Models\AgentEmail');

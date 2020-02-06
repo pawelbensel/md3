@@ -3,30 +3,31 @@
 
 namespace App\Services\Matcher\Matchers;
 
-
 use App\Services\Matcher\BaseMatcher;
 use App\Services\OfficeService;
 use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
 
-class OfficeNameAddress1CityMatcher extends BaseMatcher
+class O008_CleanSlugOfficeNameAddress1Address2CityMatcher extends BaseMatcher
 {
     protected $fields = ['name', 'addresses'];
-    protected $rate = 90;
+    protected $rate = 85;
     protected $table = self::OFFICE;
 
     public function match(array $row): ?Model
     {
-        if(!isset($row['name'])||
+        if(!isset($row['clean_name_slug'])||
             !isset($row['city'])||
-            !isset($row['address1']))
+            !isset($row['address1'])||
+            !isset($row['address2']))
         {
             return null;
         }
 
         $office = $this->queryBuilder
-            ->whereRaw('office_names.name = \''.$row['name'].'\'')
+            ->whereRaw('office_names.slug = \''.$row['clean_name_slug'].'\'')
             ->whereRaw('office_addresses.address1 = \''.$row['address1'].'\'')
+            ->whereRaw('office_addresses.address2 = \''.$row['address2'].'\'')
             ->whereRaw('office_addresses.city = \''.$row['city'].'\'')
             ->first();
 
@@ -35,7 +36,7 @@ class OfficeNameAddress1CityMatcher extends BaseMatcher
 
     public function getMatchedBy(): string
     {
-        return 'office_name, address1, city';
+        return 'clean slug office_name, address1, address2, city';
     }
 
     public function supports(ParseServiceInterface $parseService): bool

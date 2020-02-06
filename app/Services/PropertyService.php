@@ -31,6 +31,7 @@ use App\Models\PropTotalLivingRoom;
 use App\Models\PropTotalRoom;
 use App\Models\PropYearBuild;
 use App\Models\PropZip;
+use App\Models\Similar;
 use App\Services\Matcher\MatcherInterface;
 use App\Services\Source\RetsSourceService;
 use Illuminate\Database\Eloquent\Model;
@@ -62,11 +63,26 @@ class PropertyService extends BaseService implements ParseServiceInterface
     {
         $property = $this->search();
 
-        if (null != $property){
+        if (null != $property && $this->matching_rate > 50){
             echo 'Property found with id '.$property->id. ' by '.$this->matched_by.PHP_EOL;
             return $property;
         }
+        $LowMatchingRateProperty = $property;
+        $previousMatchingRate = $this->matching_rate;
+        $previousMatchedBy = $this->matched_by;
+
         $property = $this->create();
+
+        if(null != $LowMatchingRateProperty && $previousMatchingRate <= 50){
+            $similar = new Similar();
+            $similar->object_id = $LowMatchingRateProperty->id;
+            $similar->similar_id = $property->id;
+            $similar->matched_by = $previousMatchedBy;
+            $similar->matching_rate = $previousMatchingRate;
+            echo 'Found low similarity object'.PHP_EOL;
+
+            $similar->similar()->associate($this->property)->save();
+        }
 
         return $property;
     }

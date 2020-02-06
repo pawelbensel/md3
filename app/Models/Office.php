@@ -18,6 +18,11 @@ class Office extends Model
         return $this->hasMany('App\Models\OfficeName');
     }
 
+    public function similar()
+    {
+        return $this->morphMany(Similar::class, 'similar');
+    }
+
     public function msaIds()
     {
         return $this->hasMany('App\Models\OfficeMsaId');

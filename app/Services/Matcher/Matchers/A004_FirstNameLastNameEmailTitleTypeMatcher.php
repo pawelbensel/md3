@@ -10,31 +10,27 @@ use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 
-class LicenseNumberMatcher extends BaseMatcher
+class A004_FirstNameLastNameEmailTitleTypeMatcher extends BaseMatcher
 {
-    protected $fields = ['license_number'];
+    protected $fields = ['first_name', 'last_name', 'email', 'title', 'type'];
     protected $rate = 100;
     protected $table = self::AGENT;
 
     public function match(array $row): ?Model
     {
-        if(!array_key_exists('license_number', $row) ||
-            empty($row['license_number']) ||
-            strlen($row['license_number']) < 9
-        ){
+        if(!$this->isSatisfied($row)){
             return null;
-        }
+        };
 
         $agent = $this->queryBuilder
-            ->whereRaw('agent_license_numbers.license_number = \''. $row['license_number'].'\'')
+            ->whereRaw('agent_first_names.first_name like \'%'.$row['first_name'].'%\'')
+            ->whereRaw('agent_last_names.last_name like \'%'.$row['last_name'].'%\'')
+            ->whereRaw('agent_emails.email like \''.$row['email'].'\'')
+            ->whereRaw('agent_titles.title like \''.$row['title'].'\'')
+            ->whereRaw('agent_types.type like \''.$row['type'].'\'')
             ->first();
 
         return $agent;
-    }
-
-    public function getMatchedBy(): string
-    {
-        return 'license_number';
     }
 
     public function supports(ParseServiceInterface $parseService): bool

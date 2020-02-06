@@ -8,7 +8,7 @@ use App\Services\OfficeService;
 use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
 
-class CleanSlugOffceNameShortPhoneMatcher extends BaseMatcher
+class O012_CleanSlugOffceNameShortPhoneMatcher extends BaseMatcher
 {
     protected $fields = ['name', 'phone'];
     protected $rate = 65;

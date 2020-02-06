@@ -9,33 +9,31 @@ use App\Services\OfficeService;
 use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
 
-class SlugOfficeNameAddress1CityMatcher extends BaseMatcher
+class O011_CleanSlugOfficeNamePhone extends BaseMatcher
 {
-    protected $fields = ['name', 'addresses'];
-    protected $rate = 90;
+    protected $fields = ['name', 'phone'];
+    protected $rate = 70;
     protected $table = self::OFFICE;
 
     public function match(array $row): ?Model
     {
-        if(!isset($row['name_slug'])||
-            !isset($row['city'])||
-            !isset($row['address1']))
+        if(!isset($row['clean_name_slug'])||
+            !isset($row['phone']))
         {
             return null;
         }
 
         $office = $this->queryBuilder
-            ->whereRaw('office_names.slug = \''.$row['name_slug'].'\'')
-            ->whereRaw('office_addresses.address1 = \''.$row['address1'].'\'')
-            ->whereRaw('office_addresses.city = \''.$row['city'].'\'')
+            ->whereRaw('office_names.slug = \'' . $row['clean_name_slug'] . '\'')
+            ->whereRaw('office_phones.slug = \'' . $row['phone'] . '\'')
             ->first();
 
         return $office;
     }
 
-    public function getMatchedBy(): string
+    public function getMatchedBy():string
     {
-        return 'slug office_name, address1, city';
+        return 'clean slug office_name, phone';
     }
 
     public function supports(ParseServiceInterface $parseService): bool

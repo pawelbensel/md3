@@ -9,7 +9,7 @@ use App\Services\ParseServiceInterface;
 use App\Services\PropertyService;
 use Illuminate\Database\Eloquent\Model;
 
-class PropertyMlsIdMatcher extends BaseMatcher
+class P001_PropertyMlsIdMatcher extends BaseMatcher
 {
     protected $fields = ['mls_id'];
     protected $rate = 95;

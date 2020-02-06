@@ -10,7 +10,7 @@ use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 
-class SoundexFirstNameSoundexLastNameMlsIdMatcher extends BaseMatcher
+class A009_SoundexFirstNameSoundexLastNameMlsIdMatcher extends BaseMatcher
 {
     protected $fields = ['first_name', 'last_name', 'mls_id'];
     protected $rate = 60;

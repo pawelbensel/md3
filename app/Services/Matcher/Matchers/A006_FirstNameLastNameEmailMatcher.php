@@ -4,33 +4,32 @@
 namespace App\Services\Matcher\Matchers;
 
 
+use App\Models\Agent;
 use App\Services\AgentService;
 use App\Services\Matcher\BaseMatcher;
 use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 
-class FirstNameLastNameMlsIdMatcher extends BaseMatcher
+class A006_FirstNameLastNameEmailMatcher extends BaseMatcher
 {
-    protected $fields = ['first_name', 'last_name', 'mls_id'];
+    protected $fields = ['first_name', 'last_name', 'email', 'type'];
     protected $rate = 100;
     protected $table = self::AGENT;
 
     public function match(array $row): ?Model
     {
-        if(!isset($row['first_name'])||
-            !isset($row['last_name'])||
-            !isset($row['mls_id'])||
-            !isset($row['mls_name']))
-        {
+        if(!$this->isSatisfied($row)){
             return null;
-        }
+        };
 
         $agent = $this->queryBuilder
             ->whereRaw('agent_first_names.first_name like \'%'.$row['first_name'].'%\'')
-            ->whereRaw('agent_last_names.last_name like \'%'.$row['last_name'].'%\'')            
-            ->whereRaw("agent_mls_ids.mls_id = '".$row['mls_id']."' and agent_mls_ids.mls_name='".$row['mls_name']."'")
+            ->whereRaw('agent_last_names.last_name like \'%'.$row['last_name'].'%\'')
+            ->whereRaw('agent_emails.email = \''.$row['email'].'\'')
+            ->whereRaw('agent_types.type = \''.$row['type'].'\'')
             ->first();
+
 
         return $agent;
     }

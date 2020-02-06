@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Helpers\StringHelpers;
 use App\Models\OfficeWebsite;
+use App\Models\Similar;
 use App\Services\Matcher\MatcherInterface;
 use App\Services\Matcher\Matchers\ZCityPhoneMatcher;
 use App\Services\Source\RetsSourceService;
@@ -506,8 +507,9 @@ class OfficeService extends BaseService implements ParseServiceInterface
     }
 
     public function match() {
+        $office = $this->search();
 
-		if ($office = $this->search()){
+		if (null != $office && $this->matching_rate > 50){
             $this->log('Office found with id '.$office->id. ' by '.$this->matched_by);
             return $office;
         }
@@ -517,14 +519,28 @@ class OfficeService extends BaseService implements ParseServiceInterface
             $this->log('Unable to find office. Office will NOT be added and due to missing requirements for row.');
             return null;
         }
+        $LowMatchingRateOffice = $office;
+        $previousMatchingRate = $this->matching_rate;
+        $previousMatchedBy = $this->matched_by;
 
     	$office = $this->create();
+
+        if(null != $LowMatchingRateOffice && $previousMatchingRate <= 50){
+            $similar = new Similar();
+            $similar->object_id = $LowMatchingRateOffice->id;
+            $similar->similar_id = $office->id;
+            $similar->matched_by = $previousMatchedBy;
+            $similar->matching_rate = $previousMatchingRate;
+            echo 'Found low similarity object'.PHP_EOL;
+            $similar->similar()->associate($this->office)->save();
+        }
 
     	return $office;
 
     }
 
     public function getId($row) {
+
         $this->checkedRow = $row;
         $this->sourceObjectId = $row['source_object']['source_object_id'];
         $this->office = $this->match();

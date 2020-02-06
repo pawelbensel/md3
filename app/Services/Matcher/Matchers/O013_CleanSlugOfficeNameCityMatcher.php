@@ -7,7 +7,7 @@ use App\Services\OfficeService;
 use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
 
-class CleanSlugOfficeNameCityMatcher extends BaseMatcher
+class O013_CleanSlugOfficeNameCityMatcher extends BaseMatcher
 {
     protected $fields = ['name', 'addresses'];
     protected $rate = 65;

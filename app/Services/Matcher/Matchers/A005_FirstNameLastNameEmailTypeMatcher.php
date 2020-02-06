@@ -4,14 +4,13 @@
 namespace App\Services\Matcher\Matchers;
 
 
-use App\Models\Agent;
 use App\Services\AgentService;
 use App\Services\Matcher\BaseMatcher;
 use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 
-class FirstNameLastNameEmailMatcher extends BaseMatcher
+class A005_FirstNameLastNameEmailTypeMatcher extends BaseMatcher
 {
     protected $fields = ['first_name', 'last_name', 'email', 'type'];
     protected $rate = 100;
@@ -26,10 +25,9 @@ class FirstNameLastNameEmailMatcher extends BaseMatcher
         $agent = $this->queryBuilder
             ->whereRaw('agent_first_names.first_name like \'%'.$row['first_name'].'%\'')
             ->whereRaw('agent_last_names.last_name like \'%'.$row['last_name'].'%\'')
-            ->whereRaw('agent_emails.email = \''.$row['email'].'\'')
-            ->whereRaw('agent_types.type = \''.$row['type'].'\'')
+            ->whereRaw('agent_emails.email like \''.$row['email'].'\'')
+            ->whereRaw('agent_types.type like \''.$row['type'].'\'')
             ->first();
-
 
         return $agent;
     }

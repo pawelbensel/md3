@@ -23,6 +23,11 @@ class Prop extends Model
         return $this->morphMany(KeyValue::class, 'owner');
     }
 
+    public function similar()
+    {
+        return $this->morphMany(Similar::class, 'similar');
+    }
+
     public function addresses()
     {
         return $this->hasMany(PropAddress::class);

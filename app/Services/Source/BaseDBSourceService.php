@@ -2,20 +2,22 @@
 
 namespace App\Services\Source;
 
-use App\LastUpdate;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class BaseDBSourceService extends BaseSourceService implements SourceInterface
 {
+
     protected $limit = 100;
     protected $offset = 0;
     protected $tableName;
     protected $dbConnection;
+    protected $tableCounter = null;
     protected $data;
     protected $update;
     protected $lastUpdateAt;
+    protected $updateIdentifier;
+
 
     public function setUpdate(bool $update)
     {

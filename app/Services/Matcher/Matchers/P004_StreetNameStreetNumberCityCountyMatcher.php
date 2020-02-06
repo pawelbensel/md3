@@ -9,7 +9,7 @@ use App\Services\ParseServiceInterface;
 use App\Services\PropertyService;
 use Illuminate\Database\Eloquent\Model;
 
-class StreetNameStreetNumberCityCountyMatcher extends BaseMatcher
+class P004_StreetNameStreetNumberCityCountyMatcher extends BaseMatcher
 {
     protected $fields = ['addresses'];
     protected $rate = 80;

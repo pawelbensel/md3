@@ -1,34 +1,31 @@
 <?php
 
-
 namespace App\Services\Matcher\Matchers;
-
 
 use App\Services\Matcher\BaseMatcher;
 use App\Services\OfficeService;
 use App\Services\ParseServiceInterface;
 use Illuminate\Database\Eloquent\Model;
 
-class ZAddress1CityPhoneMatcher extends BaseMatcher
+class O010_CleanSlugOfficeNameCityPhoneMatcher extends BaseMatcher
 {
-    protected $fields = ['addresses', 'phone'];
-    protected $rate = 50;
+    protected $fields = ['name', 'addresses', 'phone'];
+    protected $rate = 85;
     protected $table = self::OFFICE;
 
     public function match(array $row): ?Model
     {
-        if(!isset($row['city'])||
-            !isset($row['address1'])||
+        if(!isset($row['clean_name_slug'])||
+            !isset($row['city'])||
             !isset($row['phone']))
         {
             return null;
         }
 
         $office = $this->queryBuilder
-
-            ->whereRaw('office_addresses.address1 = \''.$row['address1'].'\'')
-            ->whereRaw('office_addresses.city = \''.$row['city'].'\'')
-            ->whereRaw('office_phones.slug = \'' . $row['phone'] . '\'')
+            ->whereRaw('office_names.slug = \'' . $row['clean_name_slug'] . '\'')
+            ->whereRaw('office_addresses.city = \'' . $row['city'] . '\'')
+            ->whereRaw('office_phones.slug = \''.$row['phone'].'\'')
             ->first();
 
         return $office;
@@ -36,7 +33,7 @@ class ZAddress1CityPhoneMatcher extends BaseMatcher
 
     public function getMatchedBy(): string
     {
-        return 'address1, city, phone';
+        return 'clean slug office_name, city, phone';
     }
 
     public function supports(ParseServiceInterface $parseService): bool
