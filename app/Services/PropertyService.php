@@ -32,6 +32,7 @@ use App\Models\PropTotalRoom;
 use App\Models\PropYearBuild;
 use App\Models\PropZip;
 use App\Models\Similar;
+use App\PropLDate;
 use App\Services\Matcher\MatcherInterface;
 use App\Services\Source\RetsSourceService;
 use Illuminate\Database\Eloquent\Model;
@@ -146,6 +147,7 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->addMlsOfficeId();
         $this->addPrimaryMlsAgent();
         $this->addCoMlsAgent();
+        $this->addLDate();
         $this->addKeyValues();
 
         echo 'Adding the property: '.$this->property->id.PHP_EOL;
@@ -193,6 +195,7 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->updatePrice();
         $this->updateDescription();
         $this->updatePictureUrl();
+        $this->addLDate();
         $this->updateOnMarket();
         $this->updateMlsId();
         $this->updateMlsPrivateNumber();
@@ -223,6 +226,18 @@ class PropertyService extends BaseService implements ParseServiceInterface
             $relatedObject->matching_rate = $this->matching_rate;
             $relatedObject->matched_by = $this->matched_by;
             $this->property->descriptions()->save($relatedObject);
+        }
+    }
+
+    private function addLDate() {
+        if (isset($this->checkedRow['l_date'])) {
+            $relatedObject = new PropLDate();
+            $relatedObject->l_date = $this->checkedRow['l_date'];
+            $relatedObject->source = $this->source->getSourceString();
+            $relatedObject->source_row_id = $this->sourceRowId;
+            $relatedObject->matching_rate = $this->matching_rate;
+            $relatedObject->matched_by = $this->matched_by;
+            $this->property->lDates()->save($relatedObject);
         }
     }
 
@@ -602,6 +617,24 @@ class PropertyService extends BaseService implements ParseServiceInterface
 
         if (!$exist) {
             $this->addYearBuild();
+        }
+    }
+
+    private function updateLDate()
+    {
+        $exist = false;
+        foreach ($this->property->lDates as $lDate) {
+            if (
+                ($lDate->l_date== $this->checkedRow['l_date'])&&
+                ($lDate->source == $this->source->getSourceString())
+            )
+            {
+                $exist = true;
+            }
+        }
+
+        if (!$exist) {
+            $this->addLDate();
         }
     }
 
@@ -1104,6 +1137,7 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $sqlArray['mls_id'] = array_key_exists('mls_id', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['mls_id']): null;
         $sqlArray['mls_agent_id'] = array_key_exists('mls_agent_id', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['mls_agent_id']): null;
         $sqlArray['mls_co_agent_id'] = array_key_exists('mls_co_agent_id', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['mls_co_agent_id']): null;
+        $sqlArray['l_date'] =  array_key_exists('l_date', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['l_date']): null;
 
         if($this->source instanceof RetsSourceService){
             $sqlArray['mls_name'] = $this->source->getMlsName();

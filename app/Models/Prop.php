@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\PropLDate;
 use Illuminate\Database\Eloquent\Model;
 
 class Prop extends Model
@@ -36,6 +37,11 @@ class Prop extends Model
     public function zips()
     {
         return $this->hasMany(PropZip::class);
+    }
+
+    public function lDates()
+    {
+        return $this->hasMany(PropLDate::class);
     }
 
     public function agentMlsIds()

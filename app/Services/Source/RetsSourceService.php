@@ -75,6 +75,7 @@ class RetsSourceService extends BaseDBSourceService implements MultiTableInterfa
                 'garage' => 'garage',
                 'square_feet' => 'square_feet',
                 'description' => 'description',
+                'l_date' => 'ldate',
 
                 'street_unit' => 'street_unit',
                 'street_suffix' => 'street_suffix',
