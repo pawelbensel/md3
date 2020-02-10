@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\PropLDate;
 use Illuminate\Database\Eloquent\Model;
 
 class Prop extends Model
@@ -87,16 +86,6 @@ class Prop extends Model
     public function pictureUrls()
     {
         return $this->hasMany(PropPictureUrl::class);
-    }
-
-    public function prices()
-    {
-        return $this->hasMany(PropPrice::class);
-    }
-
-    public function soldPrices()
-    {
-        return $this->hasMany(PropSoldPrice::class);
     }
 
     public function squareFeets()

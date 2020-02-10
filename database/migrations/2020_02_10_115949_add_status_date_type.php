@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddTypeToPhone extends Migration
+class AddStatusDateType extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class AddTypeToPhone extends Migration
      */
     public function up()
     {
-        Schema::table('phone', function (Blueprint $table) {
-            //
+        Schema::table('prop_statuses', function (Blueprint $table) {
+            $table->string('status_date_type');
         });
     }
 
@@ -25,8 +25,8 @@ class AddTypeToPhone extends Migration
      */
     public function down()
     {
-        Schema::table('phone', function (Blueprint $table) {
-            //
+        Schema::table('prop_statuses', function (Blueprint $table) {
+            $table->dropColumn('status_date_type');
         });
     }
 }

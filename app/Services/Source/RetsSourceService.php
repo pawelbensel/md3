@@ -97,6 +97,7 @@ class RetsSourceService extends BaseDBSourceService implements MultiTableInterfa
                 'mls_id' => 'mls_number',
                 'mls_agent_id' => 'mls_agent_id',
                 'mls_co_agent_id' => 'mls_co_agent_id',
+                'updtime' => 'updtime',
             ];
         }
     }
