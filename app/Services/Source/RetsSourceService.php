@@ -75,6 +75,7 @@ class RetsSourceService extends BaseDBSourceService implements MultiTableInterfa
                 'garage' => 'garage',
                 'square_feet' => 'square_feet',
                 'description' => 'description',
+                'l_date' => 'ldate',
 
                 'street_unit' => 'street_unit',
                 'street_suffix' => 'street_suffix',
@@ -96,6 +97,7 @@ class RetsSourceService extends BaseDBSourceService implements MultiTableInterfa
                 'mls_id' => 'mls_number',
                 'mls_agent_id' => 'mls_agent_id',
                 'mls_co_agent_id' => 'mls_co_agent_id',
+                'updtime' => 'updtime',
             ];
         }
     }

@@ -32,6 +32,7 @@ use App\Models\PropTotalRoom;
 use App\Models\PropYearBuild;
 use App\Models\PropZip;
 use App\Models\Similar;
+use App\Models\PropLDate;
 use App\Services\Matcher\MatcherInterface;
 use App\Services\Source\RetsSourceService;
 use Illuminate\Database\Eloquent\Model;
@@ -135,9 +136,7 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->addGarage();
         $this->addAddress();
         $this->addStatus();
-        $this->addSoldPrice();
         $this->addSquareFeet();
-        $this->addPrice();
         $this->addPictureUrl();
         $this->addOnMarket();
         $this->addDescription();
@@ -146,6 +145,7 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->addMlsOfficeId();
         $this->addPrimaryMlsAgent();
         $this->addCoMlsAgent();
+        $this->addLDate();
         $this->addKeyValues();
 
         echo 'Adding the property: '.$this->property->id.PHP_EOL;
@@ -188,11 +188,10 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->updateGarage();
         $this->updateAddress();
         $this->updateStatus();
-        $this->updateSoldPrice();
         $this->updateSquareFeet();
-        $this->updatePrice();
         $this->updateDescription();
         $this->updatePictureUrl();
+        $this->updateLDate();
         $this->updateOnMarket();
         $this->updateMlsId();
         $this->updateMlsPrivateNumber();
@@ -223,6 +222,18 @@ class PropertyService extends BaseService implements ParseServiceInterface
             $relatedObject->matching_rate = $this->matching_rate;
             $relatedObject->matched_by = $this->matched_by;
             $this->property->descriptions()->save($relatedObject);
+        }
+    }
+
+    private function addLDate() {
+        if (isset($this->checkedRow['l_date'])) {
+            $relatedObject = new PropLDate();
+            $relatedObject->l_date = $this->checkedRow['l_date'];
+            $relatedObject->source = $this->source->getSourceString();
+            $relatedObject->source_row_id = $this->sourceRowId;
+            $relatedObject->matching_rate = $this->matching_rate;
+            $relatedObject->matched_by = $this->matched_by;
+            $this->property->lDates()->save($relatedObject);
         }
     }
 
@@ -374,18 +385,44 @@ class PropertyService extends BaseService implements ParseServiceInterface
 
     }
 
-    private function addStatus() {
-        if (isset($this->checkedRow['status'])) {
-            $relatedObject = new PropStatus();
-            $relatedObject->status = $this->checkedRow['status'];
+    private function addStatus(): ?PropStatus {
+        $status = null;
+        if(isset($this->checkedRow['status']) && !$status){
+            $status = new PropStatus();
+            $status->status = $this->checkedRow['status'];
             if (isset($this->checkedRow['status_date'])) {
-                $relatedObject->status_date =  $this->checkedRow['status_date'];
+                $status->status_date =  $this->checkedRow['status_date'];
+                $status->status_date_type = 'status_date';
+            } else if(isset($this->checkedRow['updtime'])){
+                $status->status_date =  $this->checkedRow['updtime'];
+                $status->status_date_type = 'updtime';
+            } else {
+                $status->status_date = date('Y-m-d H:i:s');
+                $status->status_date_type = 'now';
             }
-            $relatedObject->source = $this->source->getSourceString();
-            $relatedObject->source_row_id = $this->sourceRowId;
-            $relatedObject->matching_rate = $this->matching_rate;
-            $relatedObject->matched_by = $this->matched_by;
-            $this->property->statuses()->save($relatedObject);
+            $status->source = $this->source->getSourceString();
+            $status->source_row_id = $this->sourceRowId;
+            $status->matching_rate = $this->matching_rate;
+            $status->matched_by = $this->matched_by;
+            $this->property->statuses()->save($status);
+        }
+
+        return $status;
+    }
+
+    private function addPrizeForStatus(PropStatus $status)
+    {
+        if(isset($this->checkedRow['price'])){
+            $prize = $this->createPrize();
+            $status->prices()->save($prize);
+        }
+    }
+
+    private function addSoldPrizeForStatus(PropStatus $status)
+    {
+        if(isset($this->checkedRow['soldprice'])){
+            $prize = $this->createSoldPrice();
+            $status->prices()->save($prize);
         }
     }
 
@@ -423,16 +460,19 @@ class PropertyService extends BaseService implements ParseServiceInterface
         }
     }
 
-    private function addSoldPrice() {
-        if (isset($this->checkedRow['sold_price'])) {
-            $relatedObject = new PropSoldPrice();
-            $relatedObject->sold_price = $this->checkedRow['sold_price'];
+    private function createSoldPrice(): ?Model {
+        $relatedObject = null;
+        if (isset($this->checkedRow['soldprice'])) {
+            $relatedObject = new PropPrice();
+            $relatedObject->price = $this->checkedRow['soldprice'];
+            $relatedObject->price_type = 'S';
             $relatedObject->source = $this->source->getSourceString();
             $relatedObject->source_row_id = $this->sourceRowId;
             $relatedObject->matching_rate = $this->matching_rate;
             $relatedObject->matched_by = $this->matched_by;
-            $this->property->soldPrices()->save($relatedObject);
         }
+
+        return $relatedObject;
     }
 
     private function addSquareFeet() {
@@ -447,16 +487,19 @@ class PropertyService extends BaseService implements ParseServiceInterface
         }
     }
 
-    private function addPrice() {
+    private function createPrize(): Model {
+        $relatedObject = null;
         if (isset($this->checkedRow['price'])) {
             $relatedObject = new PropPrice();
             $relatedObject->price = $this->checkedRow['price'];
+            $relatedObject->price_type = 'P';
             $relatedObject->source = $this->source->getSourceString();
             $relatedObject->source_row_id = $this->sourceRowId;
             $relatedObject->matching_rate = $this->matching_rate;
             $relatedObject->matched_by = $this->matched_by;
-            $this->property->prices()->save($relatedObject);
         }
+
+        return $relatedObject;
     }
 
     private function addPictureUrl() {
@@ -602,6 +645,24 @@ class PropertyService extends BaseService implements ParseServiceInterface
 
         if (!$exist) {
             $this->addYearBuild();
+        }
+    }
+
+    private function updateLDate()
+    {
+        $exist = false;
+        foreach ($this->property->lDates as $lDate) {
+            if (
+                ($lDate->l_date== $this->checkedRow['l_date'])&&
+                ($lDate->source == $this->source->getSourceString())
+            )
+            {
+                $exist = true;
+            }
+        }
+
+        if (!$exist) {
+            $this->addLDate();
         }
     }
 
@@ -776,56 +837,84 @@ class PropertyService extends BaseService implements ParseServiceInterface
 
     private function updateStatus()
     {
-        $exist = false;
+        $statusDate = (isset($this->checkedRow['status_date']))? $this->checkedRow['status_date']: null;
+        $statusDate = ($statusDate == null && isset($this->checkedRow['updtime']))? $this->checkedRow['updtime']: $statusDate;
+        $statusExist = $priceExist = $soldPriceExist = false;
+        $foundStatus = null;
         foreach ($this->property->statuses as $status) {
-            if (
-                ($status->status == $this->checkedRow['status'])&&
-                ($status->status_date == $this->checkedRow['status_date'])&&
-                ($status->source == $this->source->getSourceString())
-            )
-            {
-                $exist = true;
+            if(!$statusDate){
+                if (
+                    ($status->status == $this->checkedRow['status'])&&
+                    ($status->source == $this->source->getSourceString())
+                )
+                {
+                    $foundStatus = $status;
+                }
+                foreach ($status->prices() as $price){
+                    if (
+                        ($status->status == $this->checkedRow['status'])&&
+                        ($status->source == $this->source->getSourceString())&&
+                        ($price->price == $this->checkedRow['price'])&&
+                        ($price->price_type == 'P')
+                    )
+                    {
+                        $priceExist = true;
+                    }
+                    if (
+                        ($status->status == $this->checkedRow['status'])&&
+                        ($status->source == $this->source->getSourceString())&&
+                        ($price->price == $this->checkedRow['soldprice'])&&
+                        ($price->price_type == 'S')
+                    )
+                    {
+                        $soldPriceExist = true;
+                    }
+                }
+            }else {
+                if (
+                    ($status->status == $this->checkedRow['status'])&&
+                    ($status->status_date == $statusDate)&&
+                    ($status->source == $this->source->getSourceString())
+                )
+                {
+                    $foundStatus = $status;
+                }
+                foreach ($status->prices() as $price){
+                    if (
+                        ($status->status == $this->checkedRow['status'])&&
+                        ($status->status_date == $statusDate)&&
+                        ($status->source == $this->source->getSourceString())&&
+                        ($price->price == $this->checkedRow['price'])&&
+                        ($price->price_type == 'P')
+                    )
+                    {
+                        $priceExist = true;
+                    }
+                    if (
+                        ($status->status == $this->checkedRow['status'])&&
+                        ($status->status_date == $statusDate)&&
+                        ($status->source == $this->source->getSourceString())&&
+                        ($price->price == $this->checkedRow['soldprice'])&&
+                        ($price->price_type == 'S')
+                    )
+                    {
+                        $soldPriceExist = true;
+                    }
+                }
             }
         }
 
-        if (!$exist) {
-            $this->addStatus();
-        }
-    }
-
-    private function updateSoldPrice()
-    {
-        $exist = false;
-        foreach ($this->property->soldprices as $soldprice) {
-            if (
-                ($soldprice->sold_price == $this->checkedRow['soldprice'])&&
-                ($soldprice->source == $this->source->getSourceString())
-            )
-            {
-                $exist = true;
-            }
+        if(!$foundStatus){
+            $foundStatus = $this->addStatus();
         }
 
-        if (!$exist) {
-            $this->addStatus();
-        }
-    }
 
-    private function updatePrice()
-    {
-        $exist = false;
-        foreach ($this->property->prices as $price) {
-            if (
-                ($price->sold_price == $this->checkedRow['price'])&&
-                ($price->source == $this->source->getSourceString())
-            )
-            {
-                $exist = true;
-            }
+        if(!$priceExist){
+            $this->addPrizeForStatus($foundStatus);
         }
 
-        if (!$exist) {
-            $this->addPrice();
+        if(!$soldPriceExist){
+            $this->addSoldPrizeForStatus($foundStatus);
         }
     }
 
@@ -1104,6 +1193,9 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $sqlArray['mls_id'] = array_key_exists('mls_id', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['mls_id']): null;
         $sqlArray['mls_agent_id'] = array_key_exists('mls_agent_id', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['mls_agent_id']): null;
         $sqlArray['mls_co_agent_id'] = array_key_exists('mls_co_agent_id', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['mls_co_agent_id']): null;
+        $sqlArray['l_date'] =  array_key_exists('l_date', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['l_date']): null;
+
+        $sqlArray['updtime'] = $this->checkedRow['updtime'];
 
         if($this->source instanceof RetsSourceService){
             $sqlArray['mls_name'] = $this->source->getMlsName();

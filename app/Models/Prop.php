@@ -38,6 +38,11 @@ class Prop extends Model
         return $this->hasMany(PropZip::class);
     }
 
+    public function lDates()
+    {
+        return $this->hasMany(PropLDate::class);
+    }
+
     public function agentMlsIds()
     {
         return $this->hasMany(PropAgentMlsId::class);
@@ -81,16 +86,6 @@ class Prop extends Model
     public function pictureUrls()
     {
         return $this->hasMany(PropPictureUrl::class);
-    }
-
-    public function prices()
-    {
-        return $this->hasMany(PropPrice::class);
-    }
-
-    public function soldPrices()
-    {
-        return $this->hasMany(PropSoldPrice::class);
     }
 
     public function squareFeets()
