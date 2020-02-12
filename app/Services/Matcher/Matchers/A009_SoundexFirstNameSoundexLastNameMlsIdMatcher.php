@@ -24,8 +24,8 @@ class A009_SoundexFirstNameSoundexLastNameMlsIdMatcher extends BaseMatcher
 
         $agent = $this->queryBuilder
             ->whereRaw("levenshtein_ratio('".\Str::slug($row['first_name'],'')."', agent_first_names.slug) >80")
-            ->whereRaw("levenshtein_ratio('".\Str::slug($row['last_name'],'')."', agent_last_names.slug) >80")
-            ->whereRaw("agent_mls_ids.mls_id like '%".$row['mls_id']."%'")
+            ->whereRaw("levenshtein_ratio('".\Str::slug($row['last_name'],'')."', agent_last_names.slug) >80")            
+            ->whereRaw("agent_mls_ids.mls_name='".$row['mls_name']."' and agent_mls_ids.mls_id = '".$row['mls_id']."' ")
             ->first();
 
         return $agent;
