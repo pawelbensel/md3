@@ -24,7 +24,12 @@ class Agent extends Model
 
     public function similar()
     {
-        return $this->morphMany(Similar::class, 'similar');
+        return $this->morphMany(Similar::class, 'similar','similar_type', 'similar_id');
+    }
+
+    public function object()
+    {
+        return $this->morphMany(Similar::class, 'object', 'object_type', 'object_id');
     }
 
     public function emails()

@@ -14,4 +14,9 @@ class Similar extends Model
     {
         return $this->morphTo();
     }
+
+    public function object()
+    {
+        return $this->morphTo();
+    }
 }

@@ -18,3 +18,10 @@ Route::post('qb', 'Api\QueryBuilderController@build');
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::prefix('api')->group(function() {
+   Route::get('similars', 'Api\SimilarsController@index')->name('similars');
+});
+
+
+Route::get('similars', 'Api\SimilarsController@index')->name('similars1');

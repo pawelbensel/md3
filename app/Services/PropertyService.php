@@ -79,6 +79,7 @@ class PropertyService extends BaseService implements ParseServiceInterface
         if(null != $LowMatchingRateProperty && $previousMatchingRate <= 50){
             $similar = new Similar();
             $similar->object_id = $LowMatchingRateProperty->id;
+            $similar->object_type = get_class($LowMatchingRateProperty);
             $similar->similar_id = $property->id;
             $similar->matched_by = $previousMatchedBy;
             $similar->matching_rate = $previousMatchingRate;

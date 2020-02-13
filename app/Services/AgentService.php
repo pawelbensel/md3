@@ -79,6 +79,7 @@ class AgentService extends BaseService implements ParseServiceInterface
         if(null != $LowMatchingRateAgent && $previousMatchingRate <= 50){
             $similar = new Similar();
             $similar->object_id = $LowMatchingRateAgent->id;
+            $similar->object_type = get_class($LowMatchingRateAgent);
             $similar->similar_id = $agent->id;
             $similar->matched_by = $previousMatchedBy;
             $similar->matching_rate = $previousMatchingRate;
