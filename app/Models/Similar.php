@@ -12,11 +12,16 @@ class Similar extends Model
 
     public function similar()
     {
-        return $this->morphTo();
+        return $this->morphTo()->withTrashed();
     }
 
     public function object()
     {
         return $this->morphTo();
+    }
+
+    public function mergeHistory()
+    {
+        return $this->hasMany(MergeHistory::class);
     }
 }

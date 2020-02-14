@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\Historable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PropTotalRoom extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, Historable;
     protected $dates = ['deleted_at'];
 }
