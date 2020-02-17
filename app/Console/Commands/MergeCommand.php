@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Similar;
 use App\Services\Merge\MergeServiceInterface;
 use Illuminate\Console\Command;
 
@@ -9,11 +10,9 @@ class MergeCommand extends Command
 {
     private $mergeService;
 
-    protected $signature = 'merge { object_id : Main object_id }
-                                  { similar_id : Similar object id }
-                                  { --type= : Type of objects to merge } ';
+    protected $signature = 'merge { similar_id : Id of object of class Similar }';
 
-    protected $description = 'Parsing data from choosen datasource to MegaData Database';
+    protected $description = 'Merge two object in MegaData in once.';
 
     public function __construct(MergeServiceInterface $mergeService)
     {
@@ -23,6 +22,7 @@ class MergeCommand extends Command
 
     public function handle()
     {
-        $this->mergeService->getSimilars(0);
+        $similar = Similar::findOrFail($this->argument('similar_id'));
+        $this->mergeService->mergre($similar);
     }
 }

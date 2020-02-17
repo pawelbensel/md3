@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Helpers\StringHelpers;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class PropertyResource extends JsonResource
@@ -14,6 +15,9 @@ class PropertyResource extends JsonResource
      */
     public function toArray($request)
     {
+        if(StringHelpers::contains($request->getPathInfo(), 'history')){
+            $this->loadAllHasMany(true);
+        }
         return [
             'id' => $this->id,
             'type' => class_basename($this->resource),
@@ -33,10 +37,10 @@ class PropertyResource extends JsonResource
             'total_familyrooms' => $this->totalFamilyRooms->pluck('total_family_room'),
             'total_livingrooms' => $this->totalLivingRooms->pluck('total_living_room'),
             'on_markets' => $this->onMarkets->pluck('on_market','created_at'),
-            'mls_ids' => $this->mlsIds->pluck('mls_id', 'mls_name'),
-            'agent_mls_ids' => $this->agentMlsIds->pluck('agent_mls_id', 'mls_name'),
-            'agent_mls_office_ids' => $this->mlsOfficeIds->pluck('mls_office_ids', 'mls_name'),
-            'mls_private_numbers' => $this->mlsPrivateNumbers->pluck('mls_private_number', 'mls_name'),
+            'mls_ids' => new MlsIdCollection($this->mlsIds),
+            'agent_mls_ids' => new MlsIdCollection($this->agentMlsIds),
+            'agent_mls_office_ids' => new MlsIdCollection($this->mlsOfficeIds),
+            'mls_private_numbers' => $this->mlsPrivateNumbers->pluck('mls_private_number'),
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Helpers\StringHelpers;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class AgentResource extends JsonResource
@@ -14,6 +15,9 @@ class AgentResource extends JsonResource
      */
     public function toArray($request)
     {
+        if(StringHelpers::contains($request->getPathInfo(), 'history')){
+            $this->loadAllHasMany(true);
+        }
         return [
             'id' => $this->id,
             'type' => class_basename($this->resource),
@@ -23,7 +27,7 @@ class AgentResource extends JsonResource
             'phones' => $this->phones->pluck('phone'),
             'types' => $this->types->pluck('types'),
             'titles' => $this->titles->pluck('titles'),
-            'mls_ids' => $this->mlsIds->pluck('mls_id', 'mls_name'),
+            'mls_ids' => new MlsIdCollection($this->mlsIds),
         ];
     }
 }

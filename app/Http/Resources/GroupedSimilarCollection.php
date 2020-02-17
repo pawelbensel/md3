@@ -35,7 +35,8 @@ class GroupedSimilarCollection extends ResourceCollection
                 $similar->id => [
                     'matching_rate' => $similar->matching_rate,
                     'matched_by' => $similar->matched_by,
-                    'similar' => new OnlySimilarResource($similar)
+                    'merged_at' => $similar->deleted_at,
+                    'similar' => new OnlySimilarResource($similar),
                 ]
             ];
         });

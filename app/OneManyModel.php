@@ -14,11 +14,11 @@ class OneManyModel extends Model
             return;
         }
 
-        $this->load(array_map(function($relation){
-            return [$relation => function($query){
-               $query->withTrashed();
-            }];
-        },$this->getAllHasManyUserRelations()));
+        foreach ($this->getAllHasManyUserRelations() as $relation){
+            $this->load([ $relation => function ($query){
+                $query->withTrashed();
+            }]);
+        }
     }
 
     public static function getAllHasManyUserRelations()

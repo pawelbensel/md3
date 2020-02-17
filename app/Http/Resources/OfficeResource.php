@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Helpers\StringHelpers;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -15,6 +16,9 @@ class OfficeResource extends JsonResource
      */
     public function toArray($request)
     {
+        if(StringHelpers::contains($request->getPathInfo(), 'history')){
+            $this->loadAllHasMany(true);
+        }
         return [
             'id' => $this->id,
             'type' => class_basename($this->resource),
@@ -25,7 +29,7 @@ class OfficeResource extends JsonResource
             'company_names' => $this->companyNames->pluck('company_names'),
             'emails' => $this->emails->pluck('email'),
             'webistes' => $this->websites->pluck('website'),
-            'mls_ids' => $this->mlsIds->pluck('mls_id', 'mls_name'),
+            'mls_ids' => new MlsIdCollection($this->mlsIds),
             'msa_ids' => $this->msaIds,
         ];
     }
