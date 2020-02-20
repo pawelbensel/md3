@@ -2,11 +2,21 @@
 
 namespace App;
 
+use App\Traits\Historable;
+use DDZobov\PivotSoftDeletes\Concerns\HasRelationships;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use ReflectionClass;
 
 class OneManyModel extends Model
 {
+    use
+        SoftDeletes,
+        Historable,
+        HasRelationships;
+
+    protected $dates = ['deleted_at'];
+
     public function loadAllHasMany(bool $trashed = false)
     {
         if(!$trashed){

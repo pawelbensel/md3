@@ -25,45 +25,39 @@ class MergeService implements MergeServiceInterface
         foreach($similarObject->getRelations() as $relationCollection)
         {
             foreach($relationCollection as $singleModel){
-                dd($singleModel);
-                /** @var Model $copyModel */
-                $copyModel = $singleModel->replicate();
-                // get foregin key based on ClassName ex: prop_id, agent_id
-                $foreginKey = strtolower(StringHelpers::getUntilSecondCappitalLetter(class_basename($copyModel))).'_id';
-                if($singleModel instanceof Agent){
-                    dd($foreginKey);
-                }
-                if($singleModel instanceof Prop){
-                    dd($foreginKey);
-                }
-                $copyModel->$foreginKey = $similar->object->id;
-                $copyModel->matching_rate = $similar->matching_rate;
-                $copyModel->matched_by = $similar->matched_by;
-                $copyModel->save();
-                $singleModel->delete();
-
                 $mergeHistory = new MergeHistory();
                 $mergeHistory->similar_id = $similar->id;
-                $mergeHistory->target_id = $copyModel->id;
-                $mergeHistory->previous_id = $singleModel->id;
-                $mergeHistory->target_type = get_class($copyModel);
-                $mergeHistory->previous_type = get_class($singleModel);
+
+                if($singleModel instanceof OneManyModel){
+                    $relation = strtolower(StringHelpers::getUntilSecondCappitalLetter(class_basename($singleModel))).'s';
+                    $similarObject->$relation()->detach([$singleModel->id]);
+                    $similar->object->$relation()->attach([$singleModel->id]);
+
+                    $mergeHistory->target_id = $singleModel->id;
+                    $mergeHistory->previous_id = $singleModel->id;
+                    $mergeHistory->target_type = get_class($singleModel);
+                    $mergeHistory->previous_type = get_class($singleModel);
+                }else {
+                    /** @var Model $copyModel */
+                    $copyModel = $singleModel->replicate();
+                    // get foregin key based on ClassName ex: prop_id, agent_id
+                    $foreginKey = strtolower(StringHelpers::getUntilSecondCappitalLetter(class_basename($copyModel))).'_id';
+                    $copyModel->$foreginKey = $similar->object->id;
+                    $copyModel->matching_rate = $similar->matching_rate;
+                    $copyModel->matched_by = $similar->matched_by;
+                    $copyModel->save();
+                    $singleModel->delete();
+
+                    $mergeHistory->target_id = $copyModel->id;
+                    $mergeHistory->previous_id = $singleModel->id;
+                    $mergeHistory->target_type = get_class($copyModel);
+                    $mergeHistory->previous_type = get_class($singleModel);
+                }
+
                 $mergeHistory->save();
                 array_push($mergeHistoryArray, $mergeHistory);
             }
         }
-        if($similar->similar instanceof Office){
-            $agents = $similar->similar->agents()->get();
-            foreach ($agents as $agent){
-                $agent->offices()->sync($similar->object);
-            }
-            $props = $similar->similar->props()->get();
-            foreach ($props as $prop){
-                $prop->offices()->sync($similar->object);
-            }
-        }
-
-
         $similarObject->delete();
         $similar->delete();
 
@@ -74,9 +68,17 @@ class MergeService implements MergeServiceInterface
     {
         $similar->similar->restore();
         foreach ($similar->mergeHistory as $singleMergeHistory){
-                $singleMergeHistory->previous->restore();
+            if($singleMergeHistory->previous instanceof OneManyModel &&
+                $singleMergeHistory->target instanceof OneManyModel){
+                $relation = strtolower(StringHelpers::getUntilSecondCappitalLetter(class_basename($singleMergeHistory->previous))).'s';
+
+                $similar->object->$relation()->detach([$singleMergeHistory->previous->id]);
+                $similar->similar->$relation()->attach([$singleMergeHistory->previous->id]);
+            } else {
                 $singleMergeHistory->target->delete();
-                $singleMergeHistory->delete();
+                $singleMergeHistory->previous->restore();
+            }
+            $singleMergeHistory->delete();
         }
         $similar->restore();
     }

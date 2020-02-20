@@ -79,7 +79,7 @@ class StringHelpers
                 return substr($string,0,$i);
 
             }
-        return 0;
+        return $string;
     }
 
 }

@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Prop extends OneManyModel
 {
-    use SoftDeletes;
-    protected $dates = ['deleted_at'];
     protected $fillable = ['source'];
 
     /**
@@ -16,7 +14,7 @@ class Prop extends OneManyModel
      */
     public function agents()
     {
-        return $this->belongsToMany(Agent::class)->withTimestamps();
+        return $this->belongsToMany(Agent::class)->withSoftDeletes()->withTimestamps();
     }
 
     /**
@@ -24,7 +22,7 @@ class Prop extends OneManyModel
      */
     public function offices()
     {
-        return $this->belongsToMany(Office::class)->withTimestamps();
+        return $this->belongsToMany(Office::class)->withSoftDeletes()->withTimestamps();
     }
 
     /**

@@ -7,10 +7,23 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Agent extends OneManyModel
 {
-    use SoftDeletes;
-
     protected $fillable = ['source'];
-    protected $dates = ['deleted_at'];
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function offices()
+    {
+        return $this->belongsToMany(Office::class)->withSoftDeletes()->withTimestamps();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function props()
+    {
+        return $this->belongsToMany(Prop::class)->withSoftDeletes()->withTimestamps();
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -90,21 +103,5 @@ class Agent extends OneManyModel
     public function types()
     {
         return $this->hasMany('App\Models\AgentType');
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function offices()
-    {
-        return $this->belongsToMany('App\Models\Office')->withTimestamps();
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function props()
-    {
-        return $this->belongsToMany(Prop::class);
     }
 }
