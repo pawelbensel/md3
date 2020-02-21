@@ -42,7 +42,7 @@ class SimilarsController extends Controller
         $similar = Similar::withTrashed()->findOrFail($id);
         $revert = $this->mergeService->revert($similar);
 
-        return new JsonResponse('ok', 200);
+        return new JsonResponse($revert, 200);
     }
 
     /**

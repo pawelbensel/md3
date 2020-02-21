@@ -64,7 +64,7 @@ class MergeService implements MergeServiceInterface
         return $mergeHistoryArray;
     }
 
-    public function revert(Similar $similar)
+    public function revert(Similar $similar): array
     {
         $similar->similar->restore();
         foreach ($similar->mergeHistory as $singleMergeHistory){
@@ -81,6 +81,8 @@ class MergeService implements MergeServiceInterface
             $singleMergeHistory->delete();
         }
         $similar->restore();
+
+        return $similar->mergeHistory->toArray();
     }
 
 

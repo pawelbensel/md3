@@ -13,7 +13,7 @@ interface MergeServiceInterface
 
     public function discard(Similar $similar);
 
-    public function revert(Similar $similar);
+    public function revert(Similar $similar): array;
 
     public function getSimilars(int $pageNumber): Collection;
 
