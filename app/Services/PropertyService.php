@@ -22,7 +22,7 @@ use App\Models\PropPictureUrl;
 use App\Models\PropPrice;
 use App\Models\PropSoldPrice;
 use App\Models\PropSquareFeet;
-use App\Models\PropStatus;
+use App\Models\Transaction;
 use App\Models\PropTotalBedRoom;
 use App\Models\PropTotalDiningRoom;
 use App\Models\PropTotalEatInKitchen;
@@ -135,7 +135,7 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->addBasement();
         $this->addGarage();
         $this->addAddress();
-        $this->addStatus();
+        $this->addTransaction();
         $this->addSquareFeet();
         $this->addPictureUrl();
         $this->addOnMarket();
@@ -385,10 +385,10 @@ class PropertyService extends BaseService implements ParseServiceInterface
 
     }
 
-    private function addStatus(): ?PropStatus {
+    private function addTransaction(): ?Transaction {
         $status = null;
         if(isset($this->checkedRow['status']) && !$status){
-            $status = new PropStatus();
+            $status = new Transaction();
             $status->status = $this->checkedRow['status'];
             if (isset($this->checkedRow['status_date'])) {
                 $status->status_date =  $this->checkedRow['status_date'];
@@ -404,25 +404,25 @@ class PropertyService extends BaseService implements ParseServiceInterface
             $status->source_row_id = $this->sourceRowId;
             $status->matching_rate = $this->matching_rate;
             $status->matched_by = $this->matched_by;
-            $this->property->statuses()->save($status);
+            $this->property->transactions()->save($status);
         }
 
         return $status;
     }
 
-    private function addPrizeForStatus(PropStatus $status)
+    private function addPrizeForTransaction(Transaction $transaction)
     {
         if(isset($this->checkedRow['price'])){
             $prize = $this->createPrize();
-            $status->prices()->save($prize);
+            $transaction->prices()->save($prize);
         }
     }
 
-    private function addSoldPrizeForStatus(PropStatus $status)
+    private function addSoldPrizeForTransaction(Transaction $transaction)
     {
         if(isset($this->checkedRow['soldprice'])){
             $prize = $this->createSoldPrice();
-            $status->prices()->save($prize);
+            $transaction->prices()->save($prize);
         }
     }
 
@@ -839,21 +839,21 @@ class PropertyService extends BaseService implements ParseServiceInterface
     {
         $statusDate = (isset($this->checkedRow['status_date']))? $this->checkedRow['status_date']: null;
         $statusDate = ($statusDate == null && isset($this->checkedRow['updtime']))? $this->checkedRow['updtime']: $statusDate;
-        $statusExist = $priceExist = $soldPriceExist = false;
+        $priceExist = $soldPriceExist = false;
         $foundStatus = null;
-        foreach ($this->property->statuses as $status) {
+        foreach ($this->property->transactions as $transaction) {
             if(!$statusDate){
                 if (
-                    ($status->status == $this->checkedRow['status'])&&
-                    ($status->source == $this->source->getSourceString())
+                    ($transaction->status == $this->checkedRow['status'])&&
+                    ($transaction->source == $this->source->getSourceString())
                 )
                 {
-                    $foundStatus = $status;
+                    $foundStatus = $transaction;
                 }
-                foreach ($status->prices() as $price){
+                foreach ($transaction->prices() as $price){
                     if (
-                        ($status->status == $this->checkedRow['status'])&&
-                        ($status->source == $this->source->getSourceString())&&
+                        ($transaction->status == $this->checkedRow['status'])&&
+                        ($transaction->source == $this->source->getSourceString())&&
                         ($price->price == $this->checkedRow['price'])&&
                         ($price->price_type == 'P')
                     )
@@ -861,8 +861,8 @@ class PropertyService extends BaseService implements ParseServiceInterface
                         $priceExist = true;
                     }
                     if (
-                        ($status->status == $this->checkedRow['status'])&&
-                        ($status->source == $this->source->getSourceString())&&
+                        ($transaction->status == $this->checkedRow['status'])&&
+                        ($transaction->source == $this->source->getSourceString())&&
                         ($price->price == $this->checkedRow['soldprice'])&&
                         ($price->price_type == 'S')
                     )
@@ -872,18 +872,18 @@ class PropertyService extends BaseService implements ParseServiceInterface
                 }
             }else {
                 if (
-                    ($status->status == $this->checkedRow['status'])&&
-                    ($status->status_date == $statusDate)&&
-                    ($status->source == $this->source->getSourceString())
+                    ($transaction->status == $this->checkedRow['status'])&&
+                    ($transaction->status_date == $statusDate)&&
+                    ($transaction->source == $this->source->getSourceString())
                 )
                 {
-                    $foundStatus = $status;
+                    $foundStatus = $transaction;
                 }
-                foreach ($status->prices() as $price){
+                foreach ($transaction->prices() as $price){
                     if (
-                        ($status->status == $this->checkedRow['status'])&&
-                        ($status->status_date == $statusDate)&&
-                        ($status->source == $this->source->getSourceString())&&
+                        ($transaction->status == $this->checkedRow['status'])&&
+                        ($transaction->status_date == $statusDate)&&
+                        ($transaction->source == $this->source->getSourceString())&&
                         ($price->price == $this->checkedRow['price'])&&
                         ($price->price_type == 'P')
                     )
@@ -891,9 +891,9 @@ class PropertyService extends BaseService implements ParseServiceInterface
                         $priceExist = true;
                     }
                     if (
-                        ($status->status == $this->checkedRow['status'])&&
-                        ($status->status_date == $statusDate)&&
-                        ($status->source == $this->source->getSourceString())&&
+                        ($transaction->status == $this->checkedRow['status'])&&
+                        ($transaction->status_date == $statusDate)&&
+                        ($transaction->source == $this->source->getSourceString())&&
                         ($price->price == $this->checkedRow['soldprice'])&&
                         ($price->price_type == 'S')
                     )
@@ -905,16 +905,16 @@ class PropertyService extends BaseService implements ParseServiceInterface
         }
 
         if(!$foundStatus){
-            $foundStatus = $this->addStatus();
+            $foundStatus = $this->addTransaction();
         }
 
 
         if(!$priceExist){
-            $this->addPrizeForStatus($foundStatus);
+            $this->addPrizeForTransaction($foundStatus);
         }
 
         if(!$soldPriceExist){
-            $this->addSoldPrizeForStatus($foundStatus);
+            $this->addSoldPrizeForTransaction($foundStatus);
         }
     }
 
@@ -1194,6 +1194,13 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $sqlArray['mls_agent_id'] = array_key_exists('mls_agent_id', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['mls_agent_id']): null;
         $sqlArray['mls_co_agent_id'] = array_key_exists('mls_co_agent_id', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['mls_co_agent_id']): null;
         $sqlArray['l_date'] =  array_key_exists('l_date', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['l_date']): null;
+
+        $sqlArray['mls_seller_id'] = array_key_exists('mls_seller_id', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['mls_seller_id']): null;
+        $sqlArray['mls_co_sell_agent_id'] = array_key_exists('mls_co_sell_agent_id', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['mls_co_sell_agent_id']): null;
+        $sqlArray['mls_sell_office_id'] = array_key_exists('mls_sell_office_id', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['mls_sell_office_id']): null;
+        $sqlArray['inactive_date'] = array_key_exists('inactive_date', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['inactive_date']): null;
+        $sqlArray['agent_commission'] = array_key_exists('agent_commission', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['agent_commission']): null;
+        $sqlArray['office_commission'] = array_key_exists('office_commission', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['office_commission']): null;
 
         $sqlArray['updtime'] = $this->checkedRow['updtime'];
 

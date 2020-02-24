@@ -93,9 +93,9 @@ class Prop extends Model
         return $this->hasMany(PropSquareFeet::class);
     }
 
-    public function statuses()
+    public function transactions()
     {
-        return $this->hasMany(PropStatus::class);
+        return $this->hasMany(Transaction::class);
     }
 
     public function totalRooms()
