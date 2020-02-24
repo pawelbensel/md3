@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\PropInactiveDate;
 use Illuminate\Database\Eloquent\Model;
 
 class Prop extends Model
@@ -81,6 +82,11 @@ class Prop extends Model
     public function onMarkets()
     {
         return $this->hasMany(PropOnMarket::class);
+    }
+
+    public function inactiveDates()
+    {
+        return $this->hasMany(PropInactiveDate::class);
     }
 
     public function pictureUrls()

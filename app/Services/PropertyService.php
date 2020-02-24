@@ -33,6 +33,7 @@ use App\Models\PropYearBuild;
 use App\Models\PropZip;
 use App\Models\Similar;
 use App\Models\PropLDate;
+use App\Models\PropInactiveDate;
 use App\Services\Matcher\MatcherInterface;
 use App\Services\Source\RetsSourceService;
 use Illuminate\Database\Eloquent\Model;
@@ -146,6 +147,7 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->addPrimaryMlsAgent();
         $this->addCoMlsAgent();
         $this->addLDate();
+        $this->addInactiveDate();
         $this->addKeyValues();
 
         echo 'Adding the property: '.$this->property->id.PHP_EOL;
@@ -198,6 +200,7 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->updateMlsOfficeId();
         $this->updateCoAgent();
         $this->updatePrimaryAgent();
+        $this->updateInactiveDate();
         $this->updateKeyValues();
     }
 
@@ -234,6 +237,18 @@ class PropertyService extends BaseService implements ParseServiceInterface
             $relatedObject->matching_rate = $this->matching_rate;
             $relatedObject->matched_by = $this->matched_by;
             $this->property->lDates()->save($relatedObject);
+        }
+    }
+
+    private function addInactiveDate() {
+        if (isset($this->checkedRow['inactive_date'])) {
+            $relatedObject = new PropInactiveDate();
+            $relatedObject->inactive_date = $this->checkedRow['inactive_date'];
+            $relatedObject->source = $this->source->getSourceString();
+            $relatedObject->source_row_id = $this->sourceRowId;
+            $relatedObject->matching_rate = $this->matching_rate;
+            $relatedObject->matched_by = $this->matched_by;
+            $this->property->inactiveDates()->save($relatedObject);
         }
     }
 
@@ -655,6 +670,24 @@ class PropertyService extends BaseService implements ParseServiceInterface
             if (
                 ($lDate->l_date== $this->checkedRow['l_date'])&&
                 ($lDate->source == $this->source->getSourceString())
+            )
+            {
+                $exist = true;
+            }
+        }
+
+        if (!$exist) {
+            $this->addLDate();
+        }
+    }
+
+    private function updateInactiveDate()
+    {
+        $exist = false;
+        foreach ($this->property->inactiveDates as $inactiveDate) {
+            if (
+                ($inactiveDate->l_date == $this->checkedRow['inactive_date'])&&
+                ($inactiveDate->source == $this->source->getSourceString())
             )
             {
                 $exist = true;

@@ -13,7 +13,7 @@ class AddTransactions extends Migration
      */
     public function up()
     {
-        Schema::rename('prop_statues', 'transactions');
+        Schema::rename('prop_statuses', 'transactions');
     }
 
     /**
@@ -23,6 +23,6 @@ class AddTransactions extends Migration
      */
     public function down()
     {
-        Schema::rename('transactions', 'prop_statues');
+        Schema::rename('transactions', 'prop_statuses');
     }
 }
