@@ -56,17 +56,21 @@ class BaseDBSourceService extends BaseSourceService implements SourceInterface
         $returnArray = array();
         $this->lastUpdateAt = LastUpdate::query()->firstWhere(['source' => $this->source]);
 
-        $queryBuilder = DB::connection($this->dbConnection)->table($this->tableName)->skip($this->offset)->take($this->limit);
+        $queryBuilder = DB::connection($this->dbConnection)
+            ->table($this->tableName)
+            ->selectRaw('*, CASE WHEN(updtime>timestamp) THEN updtime ELSE timestamp END as ts')
+            ->orderBy('ts','ASC')
+            ->skip($this->offset)
+            ->take($this->limit);
 
-        if($this instanceof RetsSourceService){
-            $queryBuilder->orderByRaw('IFNULL(updtime,timestamp) ASC');
-            if($this->update && $this->lastUpdateAt){
-                $queryBuilder->whereRaw('IFNULL(updtime,timestamp) >= :last_update', ['last_update'=> $this->lastUpdateAt->value('lastUpdateAt')]);
-            }
+
+        if($this instanceof RetsSourceService && $this->update && $this->lastUpdateAt){
+            $queryBuilder->havingRaw('ts >= :last_update', ['last_update'=> $this->lastUpdateAt->value('lastUpdateAt')]);
         }
+
         $this->data = $queryBuilder->get();
 
-        if($this instanceof RetsSourceService) {
+        if($this instanceof RetsSourceService && ($this->data->count()>0)) {
             $updateDateTime = $this->getSegmentUpdateTime();
             if($updateDateTime > (isset($this->lastUpdateAt->lastUpdateAt)?$this->lastUpdateAt->lastUpdateAt:null)){
                 $this->lastUpdateAt = LastUpdate::updateOrCreate(['source' => $this->source], ['source' => $this->source, 'lastUpdateAt' => $updateDateTime]);
@@ -83,10 +87,8 @@ class BaseDBSourceService extends BaseSourceService implements SourceInterface
 
     private function getSegmentUpdateTime()
     {
-        $updateDateTime =$this->data->first(function($value, $key){
-            return $key == 'updtime' && $value != null || $key == 'timestamp' && $value != null;
-        });
-
-        return isset($updateDateTime->updtime)?$updateDateTime->updtime:isset($updateDateTime->timestamp)?$updateDateTime->timestamp:null;
+        return $this->data->first(function($value, $key){
+            return $key == 'ts' && $value != null;
+        })->ts;
     }
 }
