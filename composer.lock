@@ -4,8 +4,57 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "794d7cf3c6485de74034f9e32e18534a",
+    "content-hash": "3e8c64368aacd6a88b6e7b16f3bf293d",
     "packages": [
+        {
+            "name": "ddzobov/laravel-pivot-softdeletes",
+            "version": "1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ddzobov/laravel-pivot-softdeletes.git",
+                "reference": "d89877d48d96c7fb13fa4f5cc0e2d9e242822eaf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ddzobov/laravel-pivot-softdeletes/zipball/d89877d48d96c7fb13fa4f5cc0e2d9e242822eaf",
+                "reference": "d89877d48d96c7fb13fa4f5cc0e2d9e242822eaf",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/database": "^5.8|^6.0"
+            },
+            "require-dev": {
+                "laravel/framework": "^5.8|^6.0",
+                "mockery/mockery": "^1.0",
+                "orchestra/testbench-core": "3.8.*",
+                "phpunit/phpunit": "^7.5|^8.0"
+            },
+            "type": "package",
+            "autoload": {
+                "psr-4": {
+                    "DDZobov\\PivotSoftDeletes\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Daniil Zobov",
+                    "email": "ddzobov@gmail.com"
+                }
+            ],
+            "description": "Make your Eloquent models pivots be able to soft deleted in Laravel/Lumen",
+            "homepage": "https://github.com/ddzobov/laravel-pivot-softdeletes",
+            "keywords": [
+                "laravel",
+                "lumen",
+                "pivot",
+                "softdelete"
+            ],
+            "time": "2020-02-07T10:21:38+00:00"
+        },
         {
             "name": "dnoegel/php-xdg-base-dir",
             "version": "v0.1.1",
