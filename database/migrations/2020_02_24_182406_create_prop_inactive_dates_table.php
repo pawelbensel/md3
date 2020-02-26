@@ -17,6 +17,7 @@ class CreatePropInactiveDatesTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('prop_id');
             $table->timestamp('inactive_date');
+            $table->string('source');
             $table->integer('checked')->default(1); /*numer of checked when compare data before update*/
             $table->integer('passed')->default(1); /*numer of passed tries when compare data before update*/
             $table->tinyInteger('matching_rate')->default(100); /*% value of match where add - default 100% when add new record*/

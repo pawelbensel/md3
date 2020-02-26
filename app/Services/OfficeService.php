@@ -531,6 +531,7 @@ class OfficeService extends BaseService implements ParseServiceInterface
             $similar = new Similar();
             $similar->object_id = $LowMatchingRateOffice->id;
             $similar->similar_id = $office->id;
+            $similar->object_type = get_class($LowMatchingRateOffice);
             $similar->matched_by = $previousMatchedBy;
             $similar->matching_rate = $previousMatchingRate;
             echo 'Found low similarity object'.PHP_EOL;
