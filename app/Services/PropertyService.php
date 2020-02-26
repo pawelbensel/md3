@@ -492,8 +492,8 @@ class PropertyService extends BaseService implements ParseServiceInterface
                     $commision->participation = $participationType;
 
                     $commissioner = ($commissionType == 'agent_commission')?
-                        $this->findAgent($mlsId)
-                        : $this->findOffice($mlsId);
+                        $this->findAgent($mlsId) :
+                        $this->findOffice($mlsId);
 
                     if($commissioner instanceof Model){
                         $commision->commissioner_id = $commissioner->id;
@@ -504,7 +504,6 @@ class PropertyService extends BaseService implements ParseServiceInterface
                 }
             }
         }
-
     }
 
     private function findAgent($agent_id_field): ?Agent
@@ -518,7 +517,7 @@ class PropertyService extends BaseService implements ParseServiceInterface
             $agent = Agent::whereHas('mlsIds', function(Builder $q) use ($agent_id_field){
                 $q->where('mls_id', '=', $this->checkedRow[$agent_id_field])
                     ->where('mls_name', '=', $this->source->getMlsName());
-            })->fisrt();
+            })->first();
         }
 
         return $agent;
