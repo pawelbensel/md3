@@ -32,13 +32,12 @@ class GroupedSimilarCollection extends ResourceCollection
 
         $similars = $this->collection->map(function($similar){
             return [
-                $similar->id => [
+                    'id' => $similar->id,
                     'matching_rate' => $similar->matching_rate,
                     'matched_by' => $similar->matched_by,
                     'merged_at' => $similar->deleted_at,
                     'similar' => new OnlySimilarResource($similar),
-                ]
-            ];
+                ];
         });
 
         return ['object' => $object,
