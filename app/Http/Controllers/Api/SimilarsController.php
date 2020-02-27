@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\OneManyModelResource;
 use App\Http\Resources\SimilarResource;
 use App\Http\Resources\SimilarsCollection;
 use App\Models\Similar;
@@ -27,9 +28,9 @@ class SimilarsController extends Controller
     public function merge(Request $request, $id)
     {
         $similar = Similar::findOrFail($id);
-        $mergeHistory = $this->mergeService->mergre($similar);
+        $newObject = $this->mergeService->mergre($similar);
 
-        return new JsonResponse($mergeHistory, 200);
+        return new JsonResponse(new OneManyModelResource($newObject), 200);
     }
 
     /**
@@ -40,9 +41,9 @@ class SimilarsController extends Controller
     public function revert(Request $request, $id)
     {
         $similar = Similar::withTrashed()->findOrFail($id);
-        $revert = $this->mergeService->revert($similar);
+        $revertedObject = $this->mergeService->revert($similar);
 
-        return new JsonResponse($revert, 200);
+        return new JsonResponse(new OneManyModelResource($revertedObject), 200);
     }
 
     /**
