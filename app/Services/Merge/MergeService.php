@@ -14,9 +14,9 @@ use Illuminate\Database\Eloquent\Model;
 class MergeService implements MergeServiceInterface
 {
 
-    public function mergre(Similar $similar): array
+    public function mergre(Similar $similar): OneManyModel
     {
-        $mergeHistoryArray = [];
+
         /** @var OneManyModel $similarObject */
         $similarObject  = $similar->similar;
         $similarObject->loadAllHasMany();
@@ -55,16 +55,15 @@ class MergeService implements MergeServiceInterface
                 }
 
                 $mergeHistory->save();
-                array_push($mergeHistoryArray, $mergeHistory);
             }
         }
         $similarObject->delete();
         $similar->delete();
 
-        return $mergeHistoryArray;
+        return $similar->object;
     }
 
-    public function revert(Similar $similar): array
+    public function revert(Similar $similar): OneManyModel
     {
         $similar->similar->restore();
         foreach ($similar->mergeHistory as $singleMergeHistory){
@@ -75,14 +74,14 @@ class MergeService implements MergeServiceInterface
                 $similar->object->$relation()->detach([$singleMergeHistory->previous->id]);
                 $similar->similar->$relation()->attach([$singleMergeHistory->previous->id]);
             } else {
-                $singleMergeHistory->target->delete();
+                $singleMergeHistory->target->forceDelete();
                 $singleMergeHistory->previous->restore();
             }
             $singleMergeHistory->delete();
         }
         $similar->restore();
 
-        return $similar->mergeHistory->toArray();
+        return $similar->object;
     }
 
 
