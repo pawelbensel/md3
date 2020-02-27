@@ -158,13 +158,11 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->addInactiveDate();
         $this->addKeyValues();
 
-        echo 'Adding the property: '.$this->property->id.PHP_EOL;
-
         $this->assignAgent();
         $this->assignOffice();
 
         $this->addCommisions();
-
+        echo 'Adding the property: '.$this->property->id.PHP_EOL;
 
         return $this->property;
     }
@@ -181,7 +179,7 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->updateBasement();
         $this->updateGarage();
         $this->updateAddress();
-        $this->updateStatus();
+        $this->updateTransaction();
         $this->updateSquareFeet();
         $this->updateDescription();
         $this->updatePictureUrl();
@@ -191,12 +189,13 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->updateMlsPrivateNumber();
         $this->updateMlsOfficeId();
         $this->updateCoAgent();
+        $this->updateTransaction();
         $this->updatePrimaryAgent();
         $this->updateInactiveDate();
         $this->updateKeyValues();
 
-        $this->assignAgent();
-        $this->assignOffice();
+        //$this->assignAgent();
+        //$this->assignOffice();
     }
 
     private function assignAgent()
@@ -501,6 +500,65 @@ class PropertyService extends BaseService implements ParseServiceInterface
                     }
 
                     $this->transaction->commissions()->save($commision);
+                }
+            }
+        }
+    }
+
+    private function updateCommisions(Transaction $transaction)
+    {
+        $mapping = [
+            'agent_commission' => [
+                'mls_agent_id' => 'selling_agent',
+                'mls_co_agent_id' => 'co_selling_agent',
+                'mls_seller_id' => 'buying_agent',
+                'mls_co_sell_agent_id' => 'co_buying_agent',
+            ],
+            'office_commission' => [
+                'mls_agent_id' => 'selling_agent',
+                'mls_co_agent_id' => 'co_selling_agent',
+                'mls_seller_id' => 'buying_agent',
+                'mls_co_sell_agent_id' => 'co_buying_agent',
+            ]
+        ];
+
+        foreach ($mapping as $commissionType => $commissionArray){
+            foreach($commissionArray as $mlsId => $participationType){
+                if(isset($this->checkedRow[$commissionType]) && isset($this->checkedRow[$mlsId])) {
+                    $commisions = $this->property->transactions()
+                        ->with('commissions')
+                        ->get()
+                        ->pluck('commissions')
+                        ->flatten();
+
+                    $commision = new Commission();
+                    $commision->source = $this->source->getSourceString();
+                    $commision->source_row_id = $this->sourceRowId;
+                    $commision->matching_rate = $this->matching_rate;
+                    $commision->matched_by = $this->matched_by;
+                    $commision->commission = trim($this->checkedRow[$commissionType]);
+                    $commision->participation = $participationType;
+                    $commision->transaction_id = $transaction->id;
+                    $commissioner = ($commissionType == 'agent_commission')?
+                        $this->findAgent($mlsId) :
+                        $this->findOffice($mlsId);
+
+                    if($commissioner instanceof Model){
+                        $commision->commissioner_id = $commissioner->id;
+                        $commision->commissioner_type = get_class($commissioner);
+                    }
+
+                    $exists = $commisions->where('source', $this->source->getSourceString())
+                        ->where('commission', $commision->commission)
+                        ->where('participation', $commision->participation)
+                        ->where('commissioner_id', $commision->commissioner_id)
+                        ->where('commissioner_type', $commision->commissioner_type)
+                        ->where('transaction_id', $transaction->id)
+                        ->isNotEmpty();
+
+                    if(!$exists){
+                        $transaction->commissions()->save($commision);
+                    }
                 }
             }
         }
@@ -967,13 +1025,17 @@ class PropertyService extends BaseService implements ParseServiceInterface
         }
     }
 
-    private function updateStatus()
+    /**
+     * Update Transaction handles update of Transactions, Prices and Commissions.
+     */
+    private function updateTransaction()
     {
         $statusDate = (isset($this->checkedRow['status_date']))? $this->checkedRow['status_date']: null;
         $statusDate = ($statusDate == null && isset($this->checkedRow['updtime']))? $this->checkedRow['updtime']: $statusDate;
         $priceExist = $soldPriceExist = false;
         $foundStatus = null;
         foreach ($this->property->transactions as $transaction) {
+            $this->updateCommisions($transaction);
             if(!$statusDate){
                 if (
                     ($transaction->status == $this->checkedRow['status'])&&
@@ -1002,6 +1064,7 @@ class PropertyService extends BaseService implements ParseServiceInterface
                         $soldPriceExist = true;
                     }
                 }
+
             }else {
                 if (
                     ($transaction->status == $this->checkedRow['status'])&&
@@ -1038,6 +1101,7 @@ class PropertyService extends BaseService implements ParseServiceInterface
 
         if(!$foundStatus){
             $foundStatus = $this->addTransaction();
+            $this->updateCommisions($this->transaction);
         }
 
 
