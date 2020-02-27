@@ -75,7 +75,7 @@ class MergeService implements MergeServiceInterface
                 $similar->object->$relation()->detach([$singleMergeHistory->previous->id]);
                 $similar->similar->$relation()->attach([$singleMergeHistory->previous->id]);
             } else {
-                $singleMergeHistory->target->delete();
+                $singleMergeHistory->target->forceDelete();
                 $singleMergeHistory->previous->restore();
             }
             $singleMergeHistory->delete();
