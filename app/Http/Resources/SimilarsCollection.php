@@ -14,12 +14,10 @@ class SimilarsCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-
-        $groupedBy = $this->collection->groupBy('object_id');
-
-
-        return $groupedBy->map(function($item){
-            return new GroupedSimilarCollection($item);
-        });
+        return $this->collection->groupBy(['object_type', 'object_id'])->map(function($item){
+            return $item->map(function($i){
+                return new GroupedSimilarCollection($i);
+            });
+        })->flatten();
     }
 }
