@@ -12,6 +12,7 @@ use App\Services\Source\MultiTableInterface;
 use App\Services\Source\SourceFactory;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use Sentry\Laravel\Facade as Sentry;
 
 class ParseCommand extends Command
 {
@@ -62,6 +63,7 @@ class ParseCommand extends Command
                         $parseService->setSourceRowId($row['source_row']['source_row_id']);
                         $parseService->getId($row[$this->map[get_class($parseService)]]);
                     } catch (\Exception $e) {
+                        Sentry::captureException($e);
                         Log::channel($this->argument('source'))->error('Could not parse data', (array) $e);
                     }
                 }
@@ -81,10 +83,9 @@ class ParseCommand extends Command
                         $this->agentService->setSourceRowId($row['source_row']['source_row_id']);
                         $this->agentService->getId($row['agent']);
 
-
                     }catch (\Exception $e){
-                       echo 'Exception';
-                       Log::channel($this->argument('source'))->error('Could not parse data', (array) $e);
+                        Sentry::captureException($e);
+                        Log::channel($this->argument('source'))->error('Could not parse data', (array) $e);
                     }
                 }
                 if($this->option('debug')){
