@@ -35,7 +35,8 @@ class BaseSourceService implements SourceInterface
     public function map($row){
         foreach($this->mapArray as $objectType => $objectMap) {
             $sourceData = [];
-            $unMapped = array_diff(array_keys((array)$row), array_values($objectMap),$this->excludedKeyValues);
+            $unMapped = $this->getUnMapped($row, $objectMap);
+
             foreach ($objectMap as $destinationName => $sourceName) {
                 if (isset($row->$sourceName) && ($row->$sourceName<>'')) {
                     $returnArray[$objectType][$destinationName] = $row->$sourceName;
@@ -62,6 +63,22 @@ class BaseSourceService implements SourceInterface
         $returnArray['source_row'] = $sourceData;
 
         return $returnArray;
+    }
+
+    private function getUnMapped($row, array $objectMap){
+        $fields = [];
+        $this->getFields($objectMap, $fields);
+        return array_diff(array_keys((array)$row), array_values($fields),$this->excludedKeyValues);
+    }
+
+    private function getFields(array &$array, array &$fields): void {
+        foreach ($array as $arr) {
+            if(is_array($arr)){
+                $this->getFields($arr, $fields);
+            } else if (is_string($arr)) {
+                array_push($fields, $arr);
+            }
+        }
     }
 
     public function getNextData(): ?array

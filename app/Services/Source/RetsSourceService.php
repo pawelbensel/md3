@@ -37,18 +37,36 @@ class RetsSourceService extends BaseDBSourceService implements MultiTableInterfa
     public function setMap() {
         if(StringHelpers::contains($this->tableName, self::AGENTS_TABLE)){
             $this->mapArray['agent'] = [
-                'first_name' =>'ag_first_name',
-                'last_name' => 'ag_last_name',
-                'email' => 'ag_email',
-                'type' => 'ag_type',
-                'phone' => 'ag_phone',
-                'mls_id' => 'ag_public_id',
-                'office_mls_id' => 'of_public_id',
+                'first_names' => [
+                    'ag_first_name',
+                ],
+                'last_names' => [
+                    'ag_last_name',
+                ],
+                'emails' => [
+                    'ag_email',
+                    'ag_extra_email',
+                ],
+                'types' => [
+                    'ag_type',
+                ],
+                'phones' => [
+                    'ag_phone',
+                    'ag_preferred_phone',
+                ],
+                'mls_ids' => [
+                    'agent_mls_ids' => [
+                        'ag_public_id',
+                    ],
+                    'office_mls_id' => [
+                        'of_public_id',
+                    ],
+                ],
             ];
         }
         if(StringHelpers::contains($this->tableName, self::OFFICES_TABLE)) {
             $this->mapArray['office'] = [
-                'office_name' => 'of_name',
+                'office_names' => 'of_name',
                 'company' => 'company_name',
                 'address1' => 'of_address',
                 'city' => 'of_city',

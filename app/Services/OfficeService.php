@@ -41,7 +41,7 @@ class OfficeService extends BaseService implements ParseServiceInterface
         $this->sourceRowId = $sourceRowId;
     }
 
-    private function log($string){
+    private function log($string) {
         if (is_string($string)) {
             echo $string."\n\r";
         } else {
