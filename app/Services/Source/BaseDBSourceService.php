@@ -60,9 +60,10 @@ class BaseDBSourceService extends BaseSourceService implements SourceInterface
             ->table($this->tableName)
             ->selectRaw('*, CASE WHEN(updtime>timestamp) THEN updtime ELSE timestamp END as ts')
             ->orderBy('ts','ASC')
+            ->whereRaw('id = 442')
             ->skip($this->offset)
             ->take($this->limit);
-
+        echo $queryBuilder->toSql();
 
         if($this instanceof RetsSourceService && $this->update && $this->lastUpdateAt){
             $queryBuilder->havingRaw('ts >= :last_update', ['last_update'=> $this->lastUpdateAt->value('lastUpdateAt')]);
