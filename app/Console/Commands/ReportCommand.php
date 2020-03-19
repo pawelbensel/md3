@@ -4,9 +4,16 @@
 namespace App\Console\Commands;
 
 
+use App\Rules\MlsExists;
 use App\Rules\ReportSourceSupported;
 use App\Rules\ReportSqlExists;
+use App\Services\Report\Destination\RetsReportDestination;
+use App\Services\Report\ReportService;
+use App\Services\Report\Source\DatabaseReportSource;
 use App\Services\Report\Source\ReportSourceFactory;
+use App\Services\Report\Source\RetsReportSource;
+use App\Services\Report\SQL\SqlFactory;
+use App\Services\Source\RetsSourceService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
 
@@ -23,7 +30,18 @@ class ReportCommand extends Command
         $this->validateInput();
         $commandArguments = new CommandArguments($this->arguments(), $this->options());
         $source = ReportSourceFactory::factory($commandArguments);
+        $sql = SqlFactory::factory($commandArguments);
+        $destination = new RetsReportDestination();
 
+        if($source instanceof DatabaseReportSource) {
+            $source->setSql($sql);
+        }
+        if($source instanceof RetsReportSource) {
+            $source->setMlses($this->option('mls'));
+        }
+
+        $reportService = new ReportService($source, $destination);
+        $reportService->generete();
 
     }
 
@@ -36,10 +54,12 @@ class ReportCommand extends Command
             'source' => $this->argument('source'),
             'sql' => $this->option('sql'),
             'targetTable' => $this->option('targetTable'),
+            'mls' => $this->option('mls'),
         ], [
-            'source' => ['required', 'string', new ReportSourceSupported ],
-            'sql' => ['required', 'string', new ReportSqlExists ],
+            'source' => ['required', 'string', new ReportSourceSupported],
+            'sql' => ['required', 'string', new ReportSqlExists],
             'targetTable' => ['required'],
+            'mls' => ['required_if:source,rets',new MlsExists],
         ]);
 
         if ($validator->fails()) {

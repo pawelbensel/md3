@@ -17,8 +17,8 @@ class SqlFactory
      */
     public static function factory(CommandArguments $arguments): ReportSource
     {
-        $source = SqlFactory::getSourceName($arguments->getOptions()['sql']);
-        return new $source();
+        $sql = SqlFactory::getSourceName($arguments->getOptions()['sql']);
+        return new $sql($arguments);
     }
 
     /**

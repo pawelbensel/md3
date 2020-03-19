@@ -4,12 +4,19 @@
 namespace App\Services\Report\SQL;
 
 
+use App\Console\Commands\CommandArguments;
+
 abstract class ReportSql
 {
-    /**
-     * @var string
-     */
+    /** @var CommandArguments $commandArguments */
+    private $commandArguments;
+    /** @var string $sql */
     protected $sql = "";
+
+    public function __construct(CommandArguments $commandArguments)
+    {
+        $this->commandArguments = $commandArguments;
+    }
 
     /**
      * @return string

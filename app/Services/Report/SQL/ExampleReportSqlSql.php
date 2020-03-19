@@ -4,7 +4,9 @@
 namespace App\Services\Report\SQL;
 
 
-class ExampleReportSql extends ReportSql
+use App\Services\Report\Interfaces\MultiMlsableSql;
+
+class ExampleReportSql extends ReportSql implements MultiMlsableSql
 {
     protected $sql = "SELECT 
                         street_number,
@@ -23,4 +25,9 @@ class ExampleReportSql extends ReportSql
                     WHERE status LIKE '%pend%' 
                             AND CAST(price AS UNSIGNED)> '75000'
                     ";
+
+    public function replaceMls(string $newOrgId)
+    {
+        str_replace('orgMls',$newOrgId, $this->sql);
+    }
 }
