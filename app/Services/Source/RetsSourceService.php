@@ -99,6 +99,18 @@ class RetsSourceService extends BaseDBSourceService implements MultiTableInterfa
                 'mls_co_agent_id' => 'mls_co_agent_id',
                 'updtime' => 'updtime',
             ];
+            if(StringHelpers::contains($this->tableName, 'idxbo_prop')||
+                StringHelpers::contains($this->tableName, 'bo_prop')){
+                $additionalIdx = [
+                    'mls_seller_id' => 'mls_seller_id',
+                    'mls_co_sell_agent_id' => 'mls_co_sell_agent_id',
+                    'mls_sell_office_id' => 'mls_co_sell_office_id',
+                    'inactive_date' => 'inactive_date',
+                    'agent_commission' => 'agent_commission',
+                    'office_commission' => 'office_commission',
+                ];
+                $this->mapArray['prop'] = array_merge($this->mapArray['prop'], $additionalIdx);
+            }
         }
     }
 

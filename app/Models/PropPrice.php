@@ -12,6 +12,6 @@ class PropPrice extends Model
 
     public function status()
     {
-        return $this->belongsTo(PropStatus::class);
+        return $this->belongsTo(Transaction::class);
     }
 }

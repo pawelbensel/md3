@@ -140,6 +140,14 @@ class Prop extends OneManyModel
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
+    public function inactiveDates()
+    {
+        return $this->hasMany(PropInactiveDate::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function pictureUrls()
     {
         return $this->hasMany(PropPictureUrl::class);
@@ -156,9 +164,9 @@ class Prop extends OneManyModel
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function statuses()
+    public function transactions()
     {
-        return $this->hasMany(PropStatus::class);
+        return $this->hasMany(Transaction::class);
     }
 
     /**

@@ -6,7 +6,10 @@ namespace App\Services;
 use App\Helpers\StringHelpers;
 use App\Models\Agent;
 use App\Models\AgentMlsId;
+use App\Models\AgentOffice;
+use App\Models\Commission;
 use App\Models\KeyValue;
+use App\Models\Office;
 use App\Models\OfficeMlsId;
 use App\Models\Prop;
 use App\Models\PropAddress;
@@ -22,7 +25,7 @@ use App\Models\PropPictureUrl;
 use App\Models\PropPrice;
 use App\Models\PropSoldPrice;
 use App\Models\PropSquareFeet;
-use App\Models\PropStatus;
+use App\Models\Transaction;
 use App\Models\PropTotalBedRoom;
 use App\Models\PropTotalDiningRoom;
 use App\Models\PropTotalEatInKitchen;
@@ -33,8 +36,11 @@ use App\Models\PropYearBuild;
 use App\Models\PropZip;
 use App\Models\Similar;
 use App\Models\PropLDate;
+use App\Models\PropInactiveDate;
+use App\OneManyModel;
 use App\Services\Matcher\MatcherInterface;
 use App\Services\Source\RetsSourceService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
@@ -45,6 +51,8 @@ class PropertyService extends BaseService implements ParseServiceInterface
 {
     /** @var Prop */
     protected $property;
+    /** @var Transaction */
+    protected $transaction;
     protected $sourceObjectId;
     protected $sourceRowId;
     private $matching_rate;
@@ -136,7 +144,7 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->addBasement();
         $this->addGarage();
         $this->addAddress();
-        $this->addStatus();
+        $this->addTransaction();
         $this->addSquareFeet();
         $this->addPictureUrl();
         $this->addOnMarket();
@@ -147,31 +155,14 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->addPrimaryMlsAgent();
         $this->addCoMlsAgent();
         $this->addLDate();
+        $this->addInactiveDate();
         $this->addKeyValues();
 
+        $this->assignAgent();
+        $this->assignOffice();
+
+        $this->addCommisions();
         echo 'Adding the property: '.$this->property->id.PHP_EOL;
-
-        foreach ($this->property->agentMlsIds as $agentMlsId) {
-
-            $agentMlsId = AgentMlsId::where('mls_id', '=', $agentMlsId->agent_mls_id)->where('mls_name', '=', $this->source->getMlsName())->first();
-            if(!$agentMlsId){
-                continue;
-            }
-            $agent = $agentMlsId->agent()->get()->first();
-
-            echo 'Assigning agent '.$agent->id.' to property.';
-            $this->property->agents()->attach($agent);
-        }
-
-        foreach ($this->property->mlsOfficeIds as $officeId) {
-            $officeMlsId = OfficeMlsId::where('mls_id', '=', $officeId->mls_office_id)->where('mls_name', '=', $this->source->getMlsName())->first();
-            if(!$officeMlsId){
-                continue;
-            }
-            $office = $officeMlsId->office()->get()->first();
-            echo 'Assigning office '.$office->id.' to property.';
-            $this->property->offices()->attach($office);
-        }
 
         return $this->property;
     }
@@ -188,7 +179,7 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->updateBasement();
         $this->updateGarage();
         $this->updateAddress();
-        $this->updateStatus();
+        $this->updateTransaction();
         $this->updateSquareFeet();
         $this->updateDescription();
         $this->updatePictureUrl();
@@ -198,8 +189,40 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $this->updateMlsPrivateNumber();
         $this->updateMlsOfficeId();
         $this->updateCoAgent();
+        $this->updateTransaction();
         $this->updatePrimaryAgent();
+        $this->updateInactiveDate();
         $this->updateKeyValues();
+
+        //$this->assignAgent();
+        //$this->assignOffice();
+    }
+
+    private function assignAgent()
+    {
+        foreach ($this->property->agentMlsIds as $agentMlsId) {
+
+            $agentMlsId = AgentMlsId::where('mls_id', '=', $agentMlsId->agent_mls_id)->where('mls_name', '=', $this->source->getMlsName())->first();
+            if(!$agentMlsId){
+                continue;
+            }
+            $agent = $agentMlsId->agent()->get()->first();
+
+            echo 'Assigning agent '.$agent->id.' to property.';
+            $this->property->agents()->attach($agent);
+        }
+    }
+
+    private function assignOffice(){
+        foreach ($this->property->mlsOfficeIds as $officeId) {
+            $officeMlsId = OfficeMlsId::where('mls_id', '=', $officeId->mls_office_id)->where('mls_name', '=', $this->source->getMlsName())->first();
+            if(!$officeMlsId){
+                continue;
+            }
+            $office = $officeMlsId->office()->get()->first();
+            echo 'Assigning office '.$office->id.' to property.';
+            $this->property->offices()->attach($office);
+        }
     }
 
     private function addZip() {
@@ -235,6 +258,18 @@ class PropertyService extends BaseService implements ParseServiceInterface
             $relatedObject->matching_rate = $this->matching_rate;
             $relatedObject->matched_by = $this->matched_by;
             $this->property->lDates()->save($relatedObject);
+        }
+    }
+
+    private function addInactiveDate() {
+        if (isset($this->checkedRow['inactive_date'])) {
+            $relatedObject = new PropInactiveDate();
+            $relatedObject->inactive_date = $this->checkedRow['inactive_date'];
+            $relatedObject->source = $this->source->getSourceString();
+            $relatedObject->source_row_id = $this->sourceRowId;
+            $relatedObject->matching_rate = $this->matching_rate;
+            $relatedObject->matched_by = $this->matched_by;
+            $this->property->inactiveDates()->save($relatedObject);
         }
     }
 
@@ -386,45 +421,181 @@ class PropertyService extends BaseService implements ParseServiceInterface
 
     }
 
-    private function addStatus(): ?PropStatus {
-        $status = null;
-        if(isset($this->checkedRow['status']) && !$status){
-            $status = new PropStatus();
-            $status->status = $this->checkedRow['status'];
+    private function addTransaction(): ?Transaction {
+        $this->transaction = null;
+        if(isset($this->checkedRow['status']) && !$this->transaction){
+            $this->transaction = new Transaction();
+            $this->transaction->status = $this->checkedRow['status'];
             if (isset($this->checkedRow['status_date'])) {
-                $status->status_date =  $this->checkedRow['status_date'];
-                $status->status_date_type = 'status_date';
+                $this->transaction->status_date =  $this->checkedRow['status_date'];
+                $this->transaction->status_date_type = 'status_date';
             } else if(isset($this->checkedRow['updtime'])){
-                $status->status_date =  $this->checkedRow['updtime'];
-                $status->status_date_type = 'updtime';
+                $this->transaction->status_date =  $this->checkedRow['updtime'];
+                $this->transaction->status_date_type = 'updtime';
             } else {
-                $status->status_date = date('Y-m-d H:i:s');
-                $status->status_date_type = 'now';
+                $this->transaction->status_date = date('Y-m-d H:i:s');
+                $this->transaction->status_date_type = 'now';
             }
-            $status->source = $this->source->getSourceString();
-            $status->source_row_id = $this->sourceRowId;
-            $status->matching_rate = $this->matching_rate;
-            $status->matched_by = $this->matched_by;
-            $this->property->statuses()->save($status);
+            $this->transaction->source = $this->source->getSourceString();
+            $this->transaction->source_row_id = $this->sourceRowId;
+            $this->transaction->matching_rate = $this->matching_rate;
+            $this->transaction->matched_by = $this->matched_by;
+            $this->property->transactions()->save($this->transaction);
         }
 
-        return $status;
+        return $this->transaction;
     }
 
-    private function addPrizeForStatus(PropStatus $status)
+    private function addPrizeForTransaction(Transaction $transaction)
     {
         if(isset($this->checkedRow['price'])){
             $prize = $this->createPrize();
-            $status->prices()->save($prize);
+            $transaction->prices()->save($prize);
         }
     }
 
-    private function addSoldPrizeForStatus(PropStatus $status)
+    private function addSoldPrizeForTransaction(Transaction $transaction)
     {
         if(isset($this->checkedRow['soldprice'])){
             $prize = $this->createSoldPrice();
-            $status->prices()->save($prize);
+            $transaction->prices()->save($prize);
         }
+    }
+
+    private function addCommisions()
+    {
+        $mapping = [
+            'agent_commission' => [
+                'mls_agent_id' => 'selling_agent',
+                'mls_co_agent_id' => 'co_selling_agent',
+                'mls_seller_id' => 'buying_agent',
+                'mls_co_sell_agent_id' => 'co_buying_agent',
+            ],
+            'office_commission' => [
+                'mls_agent_id' => 'selling_agent',
+                'mls_co_agent_id' => 'co_selling_agent',
+                'mls_seller_id' => 'buying_agent',
+                'mls_co_sell_agent_id' => 'co_buying_agent',
+            ]
+        ];
+
+        foreach ($mapping as $commissionType => $commissionArray){
+            foreach($commissionArray as $mlsId => $participationType){
+                if(isset($this->checkedRow[$commissionType]) && isset($this->checkedRow[$mlsId])) {
+                    $commision = new Commission();
+                    $commision->source = $this->source->getSourceString();
+                    $commision->source_row_id = $this->sourceRowId;
+                    $commision->matching_rate = $this->matching_rate;
+                    $commision->matched_by = $this->matched_by;
+                    $commision->commission = trim($this->checkedRow[$commissionType]);
+                    $commision->participation = $participationType;
+
+                    $commissioner = ($commissionType == 'agent_commission')?
+                        $this->findAgent($mlsId) :
+                        $this->findOffice($mlsId);
+
+                    if($commissioner instanceof Model){
+                        $commision->commissioner_id = $commissioner->id;
+                        $commision->commissioner_type = get_class($commissioner);
+                    }
+
+                    $this->transaction->commissions()->save($commision);
+                }
+            }
+        }
+    }
+
+    private function updateCommisions(Transaction $transaction)
+    {
+        $mapping = [
+            'agent_commission' => [
+                'mls_agent_id' => 'selling_agent',
+                'mls_co_agent_id' => 'co_selling_agent',
+                'mls_seller_id' => 'buying_agent',
+                'mls_co_sell_agent_id' => 'co_buying_agent',
+            ],
+            'office_commission' => [
+                'mls_agent_id' => 'selling_agent',
+                'mls_co_agent_id' => 'co_selling_agent',
+                'mls_seller_id' => 'buying_agent',
+                'mls_co_sell_agent_id' => 'co_buying_agent',
+            ]
+        ];
+
+        foreach ($mapping as $commissionType => $commissionArray){
+            foreach($commissionArray as $mlsId => $participationType){
+                if(isset($this->checkedRow[$commissionType]) && isset($this->checkedRow[$mlsId])) {
+                    $commisions = $this->property->transactions()
+                        ->with('commissions')
+                        ->get()
+                        ->pluck('commissions')
+                        ->flatten();
+
+                    $commision = new Commission();
+                    $commision->source = $this->source->getSourceString();
+                    $commision->source_row_id = $this->sourceRowId;
+                    $commision->matching_rate = $this->matching_rate;
+                    $commision->matched_by = $this->matched_by;
+                    $commision->commission = trim($this->checkedRow[$commissionType]);
+                    $commision->participation = $participationType;
+                    $commision->transaction_id = $transaction->id;
+                    $commissioner = ($commissionType == 'agent_commission')?
+                        $this->findAgent($mlsId) :
+                        $this->findOffice($mlsId);
+
+                    if($commissioner instanceof Model){
+                        $commision->commissioner_id = $commissioner->id;
+                        $commision->commissioner_type = get_class($commissioner);
+                    }
+
+                    $exists = $commisions->where('source', $this->source->getSourceString())
+                        ->where('commission', $commision->commission)
+                        ->where('participation', $commision->participation)
+                        ->where('commissioner_id', $commision->commissioner_id)
+                        ->where('commissioner_type', $commision->commissioner_type)
+                        ->where('transaction_id', $transaction->id)
+                        ->isNotEmpty();
+
+                    if(!$exists){
+                        $transaction->commissions()->save($commision);
+                    }
+                }
+            }
+        }
+    }
+
+    private function findAgent($agent_id_field): ?Agent
+    {
+        $agent = $this->property->agents()->whereHas('mlsIds', function(Builder $q) use ($agent_id_field){
+            $q->where('mls_id', '=', $this->checkedRow[$agent_id_field])
+                ->where('mls_name', '=', $this->source->getMlsName());
+        })->first();
+
+        if(!$agent){
+            $agent = Agent::whereHas('mlsIds', function(Builder $q) use ($agent_id_field){
+                $q->where('mls_id', '=', $this->checkedRow[$agent_id_field])
+                    ->where('mls_name', '=', $this->source->getMlsName());
+            })->first();
+        }
+
+        return $agent;
+    }
+
+    private function findOffice($office_id_field): ?Office
+    {
+        $office = $this->property->offices()->whereHas('mlsIds', function(Builder $q) use ($office_id_field){
+            $q->where('mls_id', '=', $this->checkedRow[$office_id_field])
+                ->where('mls_name', '=', $this->source->getMlsName());
+        })->first();
+
+        if(!$office){
+            $office = Office::whereHas('mlsIds', function(Builder $q) use ($office_id_field){
+                $q->where('mls_id', '=', $this->checkedRow[$office_id_field])
+                    ->where('mls_name', '=', $this->source->getMlsName());
+            })->first();
+        }
+
+        return $office;
     }
 
     private function addKeyValues() {
@@ -667,6 +838,24 @@ class PropertyService extends BaseService implements ParseServiceInterface
         }
     }
 
+    private function updateInactiveDate()
+    {
+        $exist = false;
+        foreach ($this->property->inactiveDates as $inactiveDate) {
+            if (
+                ($inactiveDate->l_date == $this->checkedRow['inactive_date'])&&
+                ($inactiveDate->source == $this->source->getSourceString())
+            )
+            {
+                $exist = true;
+            }
+        }
+
+        if (!$exist) {
+            $this->addLDate();
+        }
+    }
+
     private function updateTotalRoom()
     {
         $exist = false;
@@ -836,25 +1025,29 @@ class PropertyService extends BaseService implements ParseServiceInterface
         }
     }
 
-    private function updateStatus()
+    /**
+     * Update Transaction handles update of Transactions, Prices and Commissions.
+     */
+    private function updateTransaction()
     {
         $statusDate = (isset($this->checkedRow['status_date']))? $this->checkedRow['status_date']: null;
         $statusDate = ($statusDate == null && isset($this->checkedRow['updtime']))? $this->checkedRow['updtime']: $statusDate;
-        $statusExist = $priceExist = $soldPriceExist = false;
+        $priceExist = $soldPriceExist = false;
         $foundStatus = null;
-        foreach ($this->property->statuses as $status) {
+        foreach ($this->property->transactions as $transaction) {
+            $this->updateCommisions($transaction);
             if(!$statusDate){
                 if (
-                    ($status->status == $this->checkedRow['status'])&&
-                    ($status->source == $this->source->getSourceString())
+                    ($transaction->status == $this->checkedRow['status'])&&
+                    ($transaction->source == $this->source->getSourceString())
                 )
                 {
-                    $foundStatus = $status;
+                    $foundStatus = $transaction;
                 }
-                foreach ($status->prices() as $price){
+                foreach ($transaction->prices() as $price){
                     if (
-                        ($status->status == $this->checkedRow['status'])&&
-                        ($status->source == $this->source->getSourceString())&&
+                        ($transaction->status == $this->checkedRow['status'])&&
+                        ($transaction->source == $this->source->getSourceString())&&
                         ($price->price == $this->checkedRow['price'])&&
                         ($price->price_type == 'P')
                     )
@@ -862,8 +1055,8 @@ class PropertyService extends BaseService implements ParseServiceInterface
                         $priceExist = true;
                     }
                     if (
-                        ($status->status == $this->checkedRow['status'])&&
-                        ($status->source == $this->source->getSourceString())&&
+                        ($transaction->status == $this->checkedRow['status'])&&
+                        ($transaction->source == $this->source->getSourceString())&&
                         ($price->price == $this->checkedRow['soldprice'])&&
                         ($price->price_type == 'S')
                     )
@@ -871,20 +1064,21 @@ class PropertyService extends BaseService implements ParseServiceInterface
                         $soldPriceExist = true;
                     }
                 }
+
             }else {
                 if (
-                    ($status->status == $this->checkedRow['status'])&&
-                    ($status->status_date == $statusDate)&&
-                    ($status->source == $this->source->getSourceString())
+                    ($transaction->status == $this->checkedRow['status'])&&
+                    ($transaction->status_date == $statusDate)&&
+                    ($transaction->source == $this->source->getSourceString())
                 )
                 {
-                    $foundStatus = $status;
+                    $foundStatus = $transaction;
                 }
-                foreach ($status->prices() as $price){
+                foreach ($transaction->prices() as $price){
                     if (
-                        ($status->status == $this->checkedRow['status'])&&
-                        ($status->status_date == $statusDate)&&
-                        ($status->source == $this->source->getSourceString())&&
+                        ($transaction->status == $this->checkedRow['status'])&&
+                        ($transaction->status_date == $statusDate)&&
+                        ($transaction->source == $this->source->getSourceString())&&
                         ($price->price == $this->checkedRow['price'])&&
                         ($price->price_type == 'P')
                     )
@@ -892,9 +1086,9 @@ class PropertyService extends BaseService implements ParseServiceInterface
                         $priceExist = true;
                     }
                     if (
-                        ($status->status == $this->checkedRow['status'])&&
-                        ($status->status_date == $statusDate)&&
-                        ($status->source == $this->source->getSourceString())&&
+                        ($transaction->status == $this->checkedRow['status'])&&
+                        ($transaction->status_date == $statusDate)&&
+                        ($transaction->source == $this->source->getSourceString())&&
                         ($price->price == $this->checkedRow['soldprice'])&&
                         ($price->price_type == 'S')
                     )
@@ -906,16 +1100,17 @@ class PropertyService extends BaseService implements ParseServiceInterface
         }
 
         if(!$foundStatus){
-            $foundStatus = $this->addStatus();
+            $foundStatus = $this->addTransaction();
+            $this->updateCommisions($this->transaction);
         }
 
 
         if(!$priceExist){
-            $this->addPrizeForStatus($foundStatus);
+            $this->addPrizeForTransaction($foundStatus);
         }
 
         if(!$soldPriceExist){
-            $this->addSoldPrizeForStatus($foundStatus);
+            $this->addSoldPrizeForTransaction($foundStatus);
         }
     }
 
@@ -1195,6 +1390,13 @@ class PropertyService extends BaseService implements ParseServiceInterface
         $sqlArray['mls_agent_id'] = array_key_exists('mls_agent_id', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['mls_agent_id']): null;
         $sqlArray['mls_co_agent_id'] = array_key_exists('mls_co_agent_id', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['mls_co_agent_id']): null;
         $sqlArray['l_date'] =  array_key_exists('l_date', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['l_date']): null;
+
+        $sqlArray['mls_seller_id'] = array_key_exists('mls_seller_id', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['mls_seller_id']): null;
+        $sqlArray['mls_co_sell_agent_id'] = array_key_exists('mls_co_sell_agent_id', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['mls_co_sell_agent_id']): null;
+        $sqlArray['mls_sell_office_id'] = array_key_exists('mls_sell_office_id', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['mls_sell_office_id']): null;
+        $sqlArray['inactive_date'] = array_key_exists('inactive_date', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['inactive_date']): null;
+        $sqlArray['agent_commission'] = array_key_exists('agent_commission', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['agent_commission']): null;
+        $sqlArray['office_commission'] = array_key_exists('office_commission', $this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['office_commission']): null;
 
         $sqlArray['updtime'] = $this->checkedRow['updtime'];
 

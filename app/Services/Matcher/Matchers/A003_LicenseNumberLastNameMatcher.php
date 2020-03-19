@@ -26,7 +26,7 @@ class A003_LicenseNumberLastNameMatcher extends BaseMatcher
 
         $agent = $this->queryBuilder
             ->whereRaw('agent_license_numbers.license_number = \''. $row['license_number'].'\'')
-            ->whereRaw('agent_last_names.last_name like \'%'.$row['last_name'].'%\'')
+            ->whereRaw('agent_last_names.last_name like \''.$row['last_name'].'%\'')
             ->first();
 
         return $agent;
