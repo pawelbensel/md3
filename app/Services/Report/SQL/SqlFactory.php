@@ -1,0 +1,36 @@
+<?php
+
+
+namespace App\Services\Report\SQL;
+
+
+use App\Console\Commands\CommandArguments;
+use App\Services\Report\Source\ReportSource;
+use ReflectionException;
+
+class SqlFactory
+{
+    /**
+     * @param CommandArguments $arguments
+     * @return ReportSource
+     * @throws ReflectionException
+     */
+    public static function factory(CommandArguments $arguments): ReportSource
+    {
+        $source = SqlFactory::getSourceName($arguments->getOptions()['sql']);
+        return new $source();
+    }
+
+    /**
+     * @param $source
+     * @return string
+     * @throws ReflectionException
+     */
+    private static function getSourceName($source)
+    {
+        $toRemove = ['_','-'];
+        $className = str_replace($toRemove, '',ucwords($source, "\t\r\n\f\v\_\-" ).'ReportSql');
+        $namespace  = (new \ReflectionClass(ReportSql::class))->getNamespaceName();
+        return $namespace.'\\'.$className;
+    }
+}
