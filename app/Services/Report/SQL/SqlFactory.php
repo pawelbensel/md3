@@ -12,10 +12,10 @@ class SqlFactory
 {
     /**
      * @param CommandArguments $arguments
-     * @return ReportSource
+     * @return ReportSql
      * @throws ReflectionException
      */
-    public static function factory(CommandArguments $arguments): ReportSource
+    public static function factory(CommandArguments $arguments): ReportSql
     {
         $sql = SqlFactory::getSourceName($arguments->getOptions()['sql']);
         return new $sql($arguments);
@@ -29,7 +29,7 @@ class SqlFactory
     private static function getSourceName($source)
     {
         $toRemove = ['_','-'];
-        $className = str_replace($toRemove, '',ucwords($source, "\t\r\n\f\v\_\-" ).'ReportSql');
+        $className = str_replace($toRemove, '',ucwords($source, "\t\r\n\f\v\_\-" ));
         $namespace  = (new \ReflectionClass(ReportSql::class))->getNamespaceName();
         return $namespace.'\\'.$className;
     }

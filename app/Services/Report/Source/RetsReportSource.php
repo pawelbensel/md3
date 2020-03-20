@@ -8,26 +8,22 @@ use App\Console\Commands\CommandArguments;
 use App\Services\Report\Interfaces\MultiMlsableSource;
 use App\Services\Report\Interfaces\MultiMlsableSql;
 use App\Services\Report\Interfaces\SqlInjectable;
-use App\Services\Report\LookupStrategy\LookupStrategy;
+use App\Services\Report\Entity\Data;
 use App\Services\Report\SQL\ReportSql;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\DB;
 
 class RetsReportSource extends DatabaseReportSource implements SqlInjectable, MultiMlsableSource
 {
-    /** @var CommandArguments $commandArguments */
-    private $commandArguments;
-
     /** @var ReportSql $sql */
     protected $sql;
 
     /** @var array $mlses */
     private $mlses;
 
-    public function __construct(CommandArguments $commandArguments)
+    public function __construct()
     {
         $this->setConnection(DB::connection('rets'));
-        $this->commandArguments = $commandArguments;
     }
 
     /**
@@ -39,10 +35,10 @@ class RetsReportSource extends DatabaseReportSource implements SqlInjectable, Mu
         if($this->sql instanceof MultiMlsableSql) {
             foreach($this->mlses as $mls) {
                 $this->sql->replaceMls($mls);
-                array_push($data, $this->getConnection()->statement($this->sql));
+                $data = array_merge($data, $this->getConnection()->select(DB::raw($this->sql->getSql())));
             }
         } else {
-            $data = $this->getConnection()->statement($this->sql);
+            $data = $this->getConnection()->statement($this->sql->getSql());
         }
 
         return $data;
@@ -53,14 +49,14 @@ class RetsReportSource extends DatabaseReportSource implements SqlInjectable, Mu
      */
     public function setSql(ReportSql $sql)
     {
-        $this->sql = $sql->getSql();
+        $this->sql = $sql;
     }
 
     /**
-     * @param array $mlsOrgId
+     * @param array $mlsOrgIds
      */
-    public function setMlses(array $mlsOrgId)
+    public function setMlses(array $mlsOrgIds)
     {
-        $this->mlses = $mlsOrgId;
+        $this->mlses = $mlsOrgIds;
     }
 }

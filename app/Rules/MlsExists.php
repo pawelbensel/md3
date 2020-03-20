@@ -3,9 +3,13 @@
 namespace App\Rules;
 
 use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class MlsExists implements Rule
 {
+    /** @var array $notFoundMlses */
+    private $notFoundMlses = [];
+
     /**
      * Create a new rule instance.
      *
@@ -25,7 +29,27 @@ class MlsExists implements Rule
      */
     public function passes($attribute, $value)
     {
-        DB::
+        if ($value === 'all') {
+            return true;
+        }
+
+        $orgIds = DB::connection('rets')
+            ->table('orgNameId')
+            ->select(['org_id'])
+            ->whereIn('org_id', $value)
+            ->get();
+        $orgIds = $orgIds->map(function($item){
+            return $item->org_id;
+        })->toArray();
+        $passes = true;
+        foreach ($value as $signleMls) {
+            if(!in_array($signleMls, $orgIds)){
+                array_push($this->notFoundMlses, $signleMls);
+                $passes = false;
+            }
+        }
+
+        return $passes;
     }
 
     /**
@@ -35,6 +59,6 @@ class MlsExists implements Rule
      */
     public function message()
     {
-        return 'The validation error message.';
+        return 'These provided mls ids ['.implode(',',$this->notFoundMlses).'] could not be found.';
     }
 }

@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Rules\MlsExists;
 use App\Rules\ReportSourceSupported;
 use App\Rules\ReportSqlExists;
+use App\Rules\TargetTableExists;
 use App\Services\Report\Destination\RetsReportDestination;
 use App\Services\Report\ReportService;
 use App\Services\Report\Source\DatabaseReportSource;
@@ -21,7 +22,8 @@ class ReportCommand extends Command
 {
     protected $signature = 'report { source : Type data source. }                               
                                    { --targetTable= : Choose table where to generate report }
-                                   { --sql= : Sql which will be used to generate report }';
+                                   { --sql= : Sql which will be used to generate report }
+                                   { --mls=* : Specify which mlses use to report. Required only then source equals to rets }';
 
     protected $description = 'Generate flexible reports';
 
@@ -58,7 +60,7 @@ class ReportCommand extends Command
         ], [
             'source' => ['required', 'string', new ReportSourceSupported],
             'sql' => ['required', 'string', new ReportSqlExists],
-            'targetTable' => ['required'],
+            'targetTable' => ['required', 'string', new TargetTableExists],
             'mls' => ['required_if:source,rets',new MlsExists],
         ]);
 

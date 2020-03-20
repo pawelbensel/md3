@@ -50,7 +50,7 @@ class ReportSqlExists implements Rule
     private static function getSourceName($source)
     {
         $toRemove = ['_','-'];
-        $className = str_replace($toRemove, '',ucwords($source, "\t\r\n\f\v\_\-" ).'ReportSql');
+        $className = str_replace($toRemove, '',ucwords($source, "\t\r\n\f\v\_\-" ));
         $namespace  = (new \ReflectionClass(ReportSql::class))->getNamespaceName();
         return $namespace.'\\'.$className;
     }
