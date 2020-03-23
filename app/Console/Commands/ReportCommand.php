@@ -9,12 +9,17 @@ use App\Rules\ReportSourceSupported;
 use App\Rules\ReportSqlExists;
 use App\Rules\TargetTableExists;
 use App\Services\Report\Destination\RetsReportDestination;
+use App\Services\Report\Exceptions\MappingException;
+use App\Services\Report\Exceptions\NumberOfColumnsException;
+use App\Services\Report\Interfaces\Mappable;
+use App\Services\Report\Interfaces\TableDestination;
 use App\Services\Report\ReportService;
 use App\Services\Report\Source\DatabaseReportSource;
 use App\Services\Report\Source\ReportSourceFactory;
 use App\Services\Report\Source\RetsReportSource;
 use App\Services\Report\SQL\SqlFactory;
 use App\Services\Source\RetsSourceService;
+use Doctrine\DBAL\Query\QueryException;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
 
@@ -42,9 +47,23 @@ class ReportCommand extends Command
             $source->setMlses($this->option('mls'));
         }
 
-        $reportService = new ReportService($source, $destination);
-        $reportService->generete();
+        if($destination instanceof TableDestination) {
 
+            $destination->setTable($this->option('targetTable'));
+        }
+
+        $reportService = new ReportService($source, $destination);
+        $status = 1;
+        try {
+            $status = $reportService->generete();
+        } catch (MappingException $e) {
+            $this->error($e->getMessage());
+        } catch (NumberOfColumnsException $e) {
+            $this->error($e->getMessage());
+        } catch (QueryException $e) {
+            $this->error($e->getMessage());
+        }
+        $this->info('Report process exited with status: '.$status);
     }
 
     /**

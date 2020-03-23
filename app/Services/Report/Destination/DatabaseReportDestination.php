@@ -4,12 +4,15 @@
 namespace App\Services\Report\Destination;
 
 
+use App\Services\Report\Interfaces\TableDestination;
 use Illuminate\Database\ConnectionInterface;
 
-abstract class DatabaseReportDestination extends ReportDestination
+abstract class DatabaseReportDestination extends ReportDestination implements TableDestination
 {
     /** @var ConnectionInterface $connection */
-    private $connection;
+    protected $connection;
+    /** @var string $table */
+    protected $table;
 
     /**
      * @param array $data
@@ -31,5 +34,13 @@ abstract class DatabaseReportDestination extends ReportDestination
     protected function getConnection(): ?ConnectionInterface
     {
         return $this->connection;
+    }
+
+    /**
+     * @param string $table
+     */
+    public function setTable(string $table)
+    {
+        $this->table = $table;
     }
 }

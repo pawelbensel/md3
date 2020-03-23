@@ -35,7 +35,7 @@ class RetsReportSource extends DatabaseReportSource implements SqlInjectable, Mu
         if($this->sql instanceof MultiMlsableSql) {
             foreach($this->mlses as $mls) {
                 $this->sql->replaceMls($mls);
-                $data = array_merge($data, $this->getConnection()->select(DB::raw($this->sql->getSql())));
+                $data = array_merge($data, (array)$this->getConnection()->select(DB::raw($this->sql->getSql())));
             }
         } else {
             $data = $this->getConnection()->statement($this->sql->getSql());
@@ -58,5 +58,13 @@ class RetsReportSource extends DatabaseReportSource implements SqlInjectable, Mu
     public function setMlses(array $mlsOrgIds)
     {
         $this->mlses = $mlsOrgIds;
+    }
+
+    /**
+     * @return ReportSql|null
+     */
+    public function getSql(): ?ReportSql
+    {
+        return $this->sql;
     }
 }
