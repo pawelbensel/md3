@@ -13,7 +13,7 @@ class AddLevenshteinFunction extends Migration
      */
     public function up()
     {
-        DB::raw ('
+        DB::unprepared('
             DROP FUNCTION IF EXISTS levenshtein;
                 DELIMITER $$
                 CREATE FUNCTION `levenshtein`( s1 text, s2 text) RETURNS int(11)
@@ -80,7 +80,7 @@ class AddLevenshteinFunction extends Migration
      */
     public function down()
     {
-        DB::raw ('DROP FUNCTION levenshtein;');
-        DB::raw ('DROP FUNCTION levenshtein_ratio;');
+        DB::unprepared('DROP FUNCTION levenshtein;');
+        DB::unprepared('DROP FUNCTION levenshtein_ratio;');
     }
 }

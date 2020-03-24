@@ -61,4 +61,25 @@ class StringHelpers
             return $string;
     }
 
+    public static function endsWith($haystack, $needle)
+    {
+        $length = strlen($needle);
+        if ($length == 0) {
+            return true;
+        }
+
+        return (substr($haystack, -$length) === $needle);
+    }
+
+    public static function getUntilSecondCappitalLetter($string): string
+    {
+        for ($i = 1; $i < strlen($string); $i++)
+            if (ctype_upper($string[$i]))
+            {
+                return substr($string,0,$i);
+
+            }
+        return $string;
+    }
+
 }

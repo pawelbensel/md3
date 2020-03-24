@@ -7,10 +7,12 @@ use App\Models\Office;
 use App\Services\AgentService;
 use App\Services\OfficeService;
 use App\Services\ParseServiceFactory;
+use App\Services\PropertyService;
 use App\Services\Source\MultiTableInterface;
 use App\Services\Source\SourceFactory;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use Sentry\Laravel\Facade as Sentry;
 
 class ParseCommand extends Command
 {
@@ -21,11 +23,16 @@ class ParseCommand extends Command
                                    { --table= : Choose table to parse. (agents/offices/properties) } 
                                     {--offset= : Source offset to skip }
                                     {--limit= : Source limit to parse }
-                                    {--debug : Stops commands after reaching the limit }';
+                                    {--debug : Stops commands after reaching the limit }
+                                    {--update : Update only last changes } ';
 
     protected $description = 'Parsing data from choosen datasource to MegaData Database';
 
-    private $map = [ AgentService::class => 'agent', OfficeService::class => 'office'];
+    private $map = [
+        AgentService::class => 'agent',
+        OfficeService::class => 'office',
+        PropertyService::class => 'prop'
+    ];
 
     public function __construct(OfficeService $officeService, AgentService $agentService)
     {
@@ -51,10 +58,12 @@ class ParseCommand extends Command
             $parseService->setSource($source);
             while($data = $source->getNextData()) {
                 foreach ($data as $row) {
+
                     try {
                         $parseService->setSourceRowId($row['source_row']['source_row_id']);
                         $parseService->getId($row[$this->map[get_class($parseService)]]);
                     } catch (\Exception $e) {
+                        Sentry::captureException($e);
                         Log::channel($this->argument('source'))->error('Could not parse data', (array) $e);
                     }
                 }
@@ -74,10 +83,9 @@ class ParseCommand extends Command
                         $this->agentService->setSourceRowId($row['source_row']['source_row_id']);
                         $this->agentService->getId($row['agent']);
 
-
                     }catch (\Exception $e){
-                       echo 'Exception';
-                       Log::channel($this->argument('source'))->error('Could not parse data', (array) $e);
+                        Sentry::captureException($e);
+                        Log::channel($this->argument('source'))->error('Could not parse data', (array) $e);
                     }
                 }
                 if($this->option('debug')){

@@ -16,6 +16,7 @@ use App\Models\AgentTitle;
 use App\Models\AgentType;
 use App\Models\Office;
 use App\Models\OfficeMlsId;
+use App\Models\Similar;
 use App\Services\Matcher\MatcherInterface;
 use App\Services\Source\RetsSourceService;
 use Illuminate\Database\Query\Builder;
@@ -31,6 +32,8 @@ class AgentService extends BaseService implements ParseServiceInterface
     protected $office;
     private  $officeIdScope;
     private $queryBuilder;
+    private $matching_rate;
+    protected $matched_by;
 
     public function __construct($officeIdScope = null)
     {
@@ -63,12 +66,26 @@ class AgentService extends BaseService implements ParseServiceInterface
     {
         $agent = $this->search();
 
-        if (null != $agent){
+        if (null != $agent && $this->matching_rate > 50){
             $this->log('Agent found with id '.$agent->id. ' by '.$this->matched_by);
             return $agent;
         }
+        $LowMatchingRateAgent = $agent;
+        $previousMatchingRate = $this->matching_rate;
+        $previousMatchedBy = $this->matched_by;
 
         $agent = $this->create();
+
+        if(null != $LowMatchingRateAgent && $previousMatchingRate <= 50){
+            $similar = new Similar();
+            $similar->object_id = $LowMatchingRateAgent->id;
+            $similar->object_type = get_class($LowMatchingRateAgent);
+            $similar->similar_id = $agent->id;
+            $similar->matched_by = $previousMatchedBy;
+            $similar->matching_rate = $previousMatchingRate;
+            echo 'Found low similarity object'.PHP_EOL;
+            $similar->similar()->associate($this->office)->save();
+        }
 
         return $agent;
     }

@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Helpers\StringHelpers;
+use App\Models\OfficeWebsite;
+use App\Models\Similar;
 use App\Services\Matcher\MatcherInterface;
 use App\Services\Matcher\Matchers\ZCityPhoneMatcher;
 use App\Services\Source\RetsSourceService;
@@ -28,6 +30,8 @@ class OfficeService extends BaseService implements ParseServiceInterface
     protected $office;
     protected $sourceObjectId;
     protected $sourceRowId;
+    protected $matching_rate;
+    protected $matched_by;
 
     public function __construct()
     {
@@ -78,6 +82,8 @@ class OfficeService extends BaseService implements ParseServiceInterface
         $sqlArray['city'] = array_key_exists('city',$this->checkedRow)? StringHelpers::escapeLike($this->checkedRow['city']): null;
         $sqlArray['phone'] = array_key_exists('office_phone',$this->checkedRow)? StringHelpers::cleanupPhoneNumber($this->checkedRow['office_phone']): null;
         $sqlArray['short_phone_numbers'] = (isset($sqlArray['phone']))? StringHelpers::shortPhoneNumber($sqlArray['phone']): null;
+        $sqlArray['office_email'] = array_key_exists('office_email',$this->checkedRow)? StringHelpers::cleanupPhoneNumber($this->checkedRow['office_email']): null;
+        $sqlArray['office_website'] = array_key_exists('office_website',$this->checkedRow)? StringHelpers::cleanupPhoneNumber($this->checkedRow['office_website']): null;
 
         if($this->source instanceof RetsSourceService){
             $sqlArray['mls_name'] = $this->source->getMlsName();
@@ -279,6 +285,48 @@ class OfficeService extends BaseService implements ParseServiceInterface
         }
     }
 
+    private function updateEmail() {
+        $exist = false;
+        foreach ($this->office->emails as $email) {
+
+            if (
+                ($email->email == $this->checkedRow['office_email'])&&
+                ($email->source == $this->source->getSourceString())
+            )
+            {
+                $exist = true;
+                //$name->addPassed();
+            }
+            //$name->addChecked();
+            //$name->save();
+        }
+
+        if (!$exist) {
+            $this->addEmail();
+        }
+    }
+
+    private function updateWebsite() {
+        $exist = false;
+        foreach ($this->office->websites as $website) {
+
+            if (
+                ($website->website == $this->checkedRow['office_website'])&&
+                ($website->source == $this->source->getSourceString())
+            )
+            {
+                $exist = true;
+                //$name->addPassed();
+            }
+            //$name->addChecked();
+            //$name->save();
+        }
+
+        if (!$exist) {
+            $this->addWebsite();
+        }
+    }
+
     private function update() {
         $this->updateName();
     	$this->updateCompanyName();
@@ -288,6 +336,8 @@ class OfficeService extends BaseService implements ParseServiceInterface
     	$this->updateMlsId();
     	$this->updateZip();
         $this->updateState();
+        $this->updateEmail();
+        $this->updateWebsite();
     }
 
     private function addMsaId() {
@@ -313,6 +363,34 @@ class OfficeService extends BaseService implements ParseServiceInterface
     		$this->office->names()->save($relObject);
 
     	}
+    }
+
+    private function addEmail() {
+        if (isset($this->checkedRow['office_email'])){
+            $relObject = new OfficeEmail();
+            $relObject->email = $this->checkedRow['office_email'];
+            $relObject->source_row_id = $this->sourceRowId;
+            $relObject->source = $this->source->getSourceString();
+            $relObject->matching_rate = $this->matching_rate;
+            $relObject->matched_by = $this->matched_by;
+
+            $this->office->emails()->save($relObject);
+
+        }
+    }
+
+    private function addWebsite() {
+        if (isset($this->checkedRow['office_website'])){
+            $relObject = new OfficeWebsite();
+            $relObject->website = $this->checkedRow['office_website'];
+            $relObject->source_row_id = $this->sourceRowId;
+            $relObject->source = $this->source->getSourceString();
+            $relObject->matching_rate = $this->matching_rate;
+            $relObject->matched_by = $this->matched_by;
+
+            $this->office->websites()->save($relObject);
+
+        }
     }
 
 	private function addCompanyName() {
@@ -423,14 +501,17 @@ class OfficeService extends BaseService implements ParseServiceInterface
         $this->addPhone();
         $this->addMlsId();
         $this->addZip();
+        $this->addEmail();
+        $this->addWebsite();
         $this->log('Adding the office: '.$this->office->id);
 
 	   	return $this->office;
     }
 
     public function match() {
+        $office = $this->search();
 
-		if ($office = $this->search()){
+		if (null != $office && $this->matching_rate > 50){
             $this->log('Office found with id '.$office->id. ' by '.$this->matched_by);
             return $office;
         }
@@ -440,14 +521,29 @@ class OfficeService extends BaseService implements ParseServiceInterface
             $this->log('Unable to find office. Office will NOT be added and due to missing requirements for row.');
             return null;
         }
+        $LowMatchingRateOffice = $office;
+        $previousMatchingRate = $this->matching_rate;
+        $previousMatchedBy = $this->matched_by;
 
     	$office = $this->create();
+
+        if(null != $LowMatchingRateOffice && $previousMatchingRate <= 50){
+            $similar = new Similar();
+            $similar->object_id = $LowMatchingRateOffice->id;
+            $similar->similar_id = $office->id;
+            $similar->object_type = get_class($LowMatchingRateOffice);
+            $similar->matched_by = $previousMatchedBy;
+            $similar->matching_rate = $previousMatchingRate;
+            echo 'Found low similarity object'.PHP_EOL;
+            $similar->similar()->associate($this->office)->save();
+        }
 
     	return $office;
 
     }
 
     public function getId($row) {
+
         $this->checkedRow = $row;
         $this->sourceObjectId = $row['source_object']['source_object_id'];
         $this->office = $this->match();
