@@ -19,6 +19,10 @@ class ProductionChanges extends Migration
         });
 
         Schema::table('prop_picture_urls', function (Blueprint $table){
+            $table->dropIndex('prop_picture_urls_picture_url_index');
+        });
+
+        Schema::table('prop_picture_urls', function (Blueprint $table){
             $table->text('picture_url')->change();
         });
 
