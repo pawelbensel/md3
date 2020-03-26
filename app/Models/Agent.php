@@ -14,7 +14,7 @@ class Agent extends OneManyModel
      */
     public function offices()
     {
-        return $this->belongsToMany(Office::class)->withSoftDeletes()->withTimestamps();
+        return $this->belongsToMany(Office::class)->withTimestamps();
     }
 
     /**
@@ -22,7 +22,7 @@ class Agent extends OneManyModel
      */
     public function props()
     {
-        return $this->belongsToMany(Prop::class)->withSoftDeletes()->withTimestamps();
+        return $this->belongsToMany(Prop::class)->withTimestamps();
     }
 
     /**

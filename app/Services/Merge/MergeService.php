@@ -31,6 +31,14 @@ class MergeService implements MergeServiceInterface
                 if($singleModel instanceof OneManyModel){
                     $relation = strtolower(StringHelpers::getUntilSecondCappitalLetter(class_basename($singleModel))).'s';
                     $similarObject->$relation()->detach([$singleModel->id]);
+
+                    $foreginKey = strtolower(StringHelpers::getUntilSecondCappitalLetter(class_basename($singleModel))).'_id';
+
+                    // Relation already exists. Object has exact reltion before merge.
+                    if(count($relationAlreadyExists = $similar->object->$relation()->where([$foreginKey => $singleModel->id])->get())> 0 ){
+                        $similar->object->$relation()->withSoftDeletes()->detach($relationAlreadyExists);
+                    };
+
                     $similar->object->$relation()->attach([$singleModel->id]);
 
                     $mergeHistory->target_id = $singleModel->id;
@@ -70,9 +78,11 @@ class MergeService implements MergeServiceInterface
             if($singleMergeHistory->previous instanceof OneManyModel &&
                 $singleMergeHistory->target instanceof OneManyModel){
                 $relation = strtolower(StringHelpers::getUntilSecondCappitalLetter(class_basename($singleMergeHistory->previous))).'s';
+                $foreginKey = strtolower(StringHelpers::getUntilSecondCappitalLetter(class_basename($singleMergeHistory->previous))).'_id';
 
-                $similar->object->$relation()->detach([$singleMergeHistory->previous->id]);
+                $similar->object->$relation()->wherePivot('deleted_at', '=', null)->detach(['id' => $singleMergeHistory->previous->id]);
                 $similar->similar->$relation()->attach([$singleMergeHistory->previous->id]);
+                $similar->object->$relation()->withSoftDeletes()->wherePivot($foreginKey, '=', $singleMergeHistory->previous->id)->restore();
             } else {
                 $singleMergeHistory->target->forceDelete();
                 $singleMergeHistory->previous->restore();
